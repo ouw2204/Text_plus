@@ -1,0 +1,12 @@
+{
+  "name": "Text_plus",
+  "tree": {
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+      "TextPlus": {
+        "$path": "src"
+      }
+    }
+  }
+}
