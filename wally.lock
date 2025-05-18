@@ -3,11 +3,6 @@
 registry = "test"
 
 [[package]]
-name = "prophetouw/interfaceutility"
-version = "1.0.8"
-dependencies = []
-
-[[package]]
 name = "prophetouw/textplus"
 version = "0.1.0"
-dependencies = [["IU", "prophetouw/interfaceutility@1.0.8"]]
+dependencies = []

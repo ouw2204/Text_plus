@@ -1,7 +1,0 @@
-[package]
-name = "prophetouw/interfaceutility"
-version = "1.0.8"
-registry = "https://github.com/ProphetOuw/InterfaceUtility"
-realm = "shared"
-
-[dependencies]
