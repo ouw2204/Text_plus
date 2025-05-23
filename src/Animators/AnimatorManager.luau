@@ -15,7 +15,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
         end
         
         local Cont = Content.Sequence[Content.CurrentIndex];
-        if Cont == nil then Content:Break(); return end;
+        if Cont == nil then Content:Break(); print(Content.CurrentIndex); return end;
         local IncreaseCurentIndex = false;
         local IncreaseCurentIndexPosition = false;
         local IncreaseCurrentCharacterPosition = false;
@@ -24,6 +24,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
             local Txt = Content.Sequence[Content.CurrentIndex];
             if typeof(Txt) == "table" then
                 Txt = Txt.Text;
+                print(" is tab")
             end
             local List,Count = Utility.splitWordsAndSpaces(Txt);
             Content.List = List;
@@ -32,20 +33,27 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
         
         --< validators
         if Content.Count == nil or Content.Count == 0 then
-            if Content.SequenceCount > Content.CurrentIndex then
+            if Content.CurrentIndex >= Content.SequenceCount then
                 Content:Break(); print("break",Content.SequenceCount,Content.CurrentIndex); return
             else
                 IncreaseCurentIndex = true;
+                if Content.List ~= nil then
+                    table.clear(Content.List)
+                end
+                Content.Count = nil;
+                Content.List = nil;
             end
         else
             if Content.CurrentIndexPosition > Content.Count then
                 IncreaseCurentIndex = true;
                 Content.CurrentIndexPosition = 1;
                 Content.Count = nil;
+                if Content.List ~= nil then
+                    table.clear(Content.List)
+                end
                 Content.List = nil;
             else
                 -- do character check
-                
                 if Content.List ~= nil then
                     if Content.Word == nil then
                         --string.match(Content.Word,"%s+") == Content.Word

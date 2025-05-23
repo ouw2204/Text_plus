@@ -108,7 +108,7 @@ module.Phase1 = function(input: any): {[any]: any}?
     local lastPos = 1
 
     -- Match: [Text] between (Params)
-    for startPos, textPart, between, params, endPos in input:gmatch("()%[([^%]]+)%](.-)%(([^%)]+)%)()") do
+    for startPos, textPart, between, params, endPos in input:gmatch("()%[([^%]]*)%](.-)%(([^%)]*)%)()") do
         -- Add any plain text before the current match
         if startPos > lastPos then
             local before = input:sub(lastPos, startPos - 1)
@@ -138,7 +138,6 @@ module.Phase1 = function(input: any): {[any]: any}?
             result[index] = remaining
         end
     end
-
     return result
 end
 module.Phase1_by_ouw = function(input: any): {[any]: any}?
