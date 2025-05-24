@@ -10,10 +10,17 @@ export type DefaultSettingsType = {
     XAlignment: Enum.TextXAlignment?;
     YAlignment: Enum.TextYAlignment?;
     Step: number?;
-    StepLoad: number?;
+    Chunks: number?;
     Speed: number?;
     Scale: number?;
 };
+export type AnimatorType = {
+    Letters: {TextLabel};
+    Word: TextLabel;
+    Destroy: (self: AnimatorType) -> ();
+    AddLetter: (self: AnimatorType, Letter: TextLabel) -> ();
+    Index: number;
+}
 export type PlayableType = {
     Play: (self: PlayableType) -> ();
     Settings: DefaultSettingsType;
@@ -22,6 +29,9 @@ export type PlayableType = {
     Break: (self: PlayableType) -> ();
     ---
 
+    Chunk: number?;
+    CurrentAnimations: {AnimatorType?};
+    AnimationsLocked: boolean?;
     ListObject: UIListLayout;
     CurrentCharTxt: TextLabel?;
     PrevCharX: number;

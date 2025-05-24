@@ -30,8 +30,11 @@ function module.splitWordsAndSpaces(input: string): ({string},number)
     end
     return result, Count;
 end
+local function tonumbfunc(value: string)
+    return tonumber(value)
+end
 local SpecialCompilers = {
-    ["Color"] = function(value: string)
+    ["color"] = function(value: string)
         if value == nil then return end;
         if string.find(value,"%<") == nil then
             return Color3.fromHex(value)
@@ -63,9 +66,8 @@ local SpecialCompilers = {
         end;
         return nil
     end,
-    ["Transparency"] = function(value: string)
-        return tonumber(value)
-    end,
+    ["transparency"] = tonumbfunc;
+    ["chunks"] = tonumbfunc;
 }
 function module.Phase2(input: string?): {[any]: any}?
     if input == nil then return end;
@@ -90,13 +92,13 @@ function module.Phase2(input: string?): {[any]: any}?
         
         if value then
             value = value:match("^%s*(.-)%s*$")
-            result[string.lower(key)] = (SpecialCompilers[key] ~= nil and SpecialCompilers[key](value)) or value
+            key = string.lower(key)
+            result[key] = (SpecialCompilers[key] ~= nil and SpecialCompilers[key](value)) or value
             remaining = nextPart
         else
             break
         end
     end
-    print(result," are phase 2 results")
     return result
 end
 

@@ -24,7 +24,6 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
             local Txt = Content.Sequence[Content.CurrentIndex];
             if typeof(Txt) == "table" then
                 Txt = Txt.Text;
-                print(" is tab")
             end
             local List,Count = Utility.splitWordsAndSpaces(Txt);
             Content.List = List;
@@ -59,7 +58,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                         --string.match(Content.Word,"%s+") == Content.Word
                         Content.Word = Content.List[Content.CurrentIndexPosition];
                         Content.WordLength = #Content.Word;
-                        Content.CurrentCharacterPosition = 1;
+                        Content.CurrentCharacterPosition = (Content.Chunk or 1);
                         Content.PrevCharX = 0;
                         local WordInstance = Instance.new("TextLabel");
                         WordInstance.Name = Content.Word.."display";
@@ -101,11 +100,12 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             Content.Word = nilset;
                             Content.WordLength = nilset;
                             Content.CurrentCharTxt = nil;
-                            Content.CurrentCharacterPosition = 1;
+                            Content.CurrentCharacterPosition = (Content.Chunk or 1);
                         else
                             IncreaseCurrentCharacterPosition = true;
                             local String = string.sub(Content.Word,0,Content.CurrentCharacterPosition)
-                            local Char = string.sub(Content.Word,Content.CurrentCharacterPosition or 1,Content.CurrentCharacterPosition)
+                            local Char = string.sub(Content.Word,(Content.CurrentCharacterPosition or 1)-((Content.Chunk or 1)-1 ),Content.CurrentCharacterPosition)
+                            print(Content.Chunk," is chunk ",Char,#Char,Content.CurrentCharacterPosition)
                             local Txt = Instance.new("TextLabel");
                             Txt.Name = Char;
                             Content.CurrentCharTxt = Txt;
@@ -144,12 +144,20 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
             Content.Timer = 0;
         elseif IncreaseCurentIndex then
             Content.CurrentIndex = (Content.CurrentIndex or 1)+1;
+            local fetch = Content.Sequence[Content.CurrentIndex];
+            if fetch ~= nil and fetch.Params ~= nil then
+                Content.CurrentStep = fetch.Params.step;
+                Content.Chunk = fetch.Params.chunks;
+            else
+                Content.Chunk = nil;
+                Content.CurrentStep = nil;
+            end
             Content.Timer = 0;
         elseif IncreaseCurentIndexPosition then
             Content.CurrentIndexPosition = (Content.CurrentIndexPosition or 1)+1;
             Content.Timer = 0;
         elseif IncreaseCurrentCharacterPosition then
-            Content.CurrentCharacterPosition = (Content.CurrentCharacterPosition or 1)+1;
+            Content.CurrentCharacterPosition = (Content.CurrentCharacterPosition or 1)+(Content.Chunk or 1);
             Content.Timer = 0;
         end
     else
