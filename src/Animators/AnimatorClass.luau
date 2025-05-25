@@ -5,16 +5,16 @@ module.__index = module;
 function module:Destroy()
     print("destroy")
 end
-function module:AddWord(Word: TextLabel)
+function module:AddLetter(Letter: TextLabel)
     
 end
-return function(Word: TextLabel, Settings: Types.DefaultSettingsType,ContentSettings: Types.DefaultSettingsType): Types.AnimatorType
-    return setmetatable({
+return function(Word: TextLabel, Settings: Types.DefaultSettingsType): Types.AnimatorType
+    local tab = {
         Word = Word;
         Letters = {};
         HasUpdate = false;
         Index = 0;
-        Settings = Settings;
-        ContentSettings = ContentSettings;
-    },module) :: any
+    }
+    
+    return setmetatable(tab,module) :: any
 end

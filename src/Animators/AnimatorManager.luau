@@ -11,11 +11,11 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
     if Content.Timer == nil or Content.Timer+WaitTime > (Content.CurrentStep or Content.Settings.Step or Defaults.Step)/(Content.CurrentSpeed or Content.Settings.Speed or Defaults.Speed) then
         local TextSize = Content.Settings.Size;
         if Content.Settings.Scaled then
-            TextSize = math.min(parentAbs.Y,100)* (Content.Settings.Scale or 1)
+            TextSize = math.min(math.min(parentAbs.Y,100)* (Content.CurrentScale or Content.Settings.Scale or 1),100)
         end
         
         local Cont = Content.Sequence[Content.CurrentIndex];
-        if Cont == nil then Content:Break(); print(Content.CurrentIndex); return end;
+        if Cont == nil then Content:Break(); return end;
         local IncreaseCurentIndex = false;
         local IncreaseCurentIndexPosition = false;
         local IncreaseCurrentCharacterPosition = false;
@@ -55,13 +55,16 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                 -- do character check
                 if Content.List ~= nil then
                     if Content.Word == nil then
-                        --string.match(Content.Word,"%s+") == Content.Word
+                        Pass = true;
+                        if Content.Params ~= nil and Content.Word == "#" then
+                            
+                        end
                         Content.Word = Content.List[Content.CurrentIndexPosition];
                         Content.WordLength = #Content.Word;
-                        Content.CurrentCharacterPosition = (Content.Chunk or 1);
+                        Content.CurrentCharacterPosition = (Content.Chunks or 1);
                         Content.PrevCharX = 0;
                         local WordInstance = Instance.new("TextLabel");
-                        WordInstance.Name = Content.Word.."display";
+                        WordInstance.Name = Content.Word;
                         WordInstance.Parent = Content.Frame;
                         WordInstance.TextTransparency = .5;
                         WordInstance.TextSize = TextSize;
@@ -83,7 +86,6 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             WordInstance.Size = UDim2.fromOffset(Bounds.X,TextSize);
                         end
                         Content.WordInstance = WordInstance;
-                        Pass = true;
                         local ContentSize = Content.ListObject.AbsoluteContentSize;
                         if not Content.Settings.Overfill and (ContentSize.X > parentAbs.X or ContentSize.Y > parentAbs.Y) then
                             WordInstance.Parent = nil;
@@ -91,7 +93,13 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             Content:Break();
                             return
                         end
-                    else
+                        if string.match(Content.Word,"%s+") == Content.Word then
+                            Content.Word = nilset;
+                            IncreaseCurentIndexPosition = true;
+                        end
+                    end
+                        
+                    if Content.Word ~= nil then
                         if Content.CurrentCharTxt ~= nil then
                             Content.CurrentCharTxt.TextTransparency = 0;
                         end;
@@ -100,12 +108,12 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             Content.Word = nilset;
                             Content.WordLength = nilset;
                             Content.CurrentCharTxt = nil;
-                            Content.CurrentCharacterPosition = (Content.Chunk or 1);
+                            Content.CurrentCharacterPosition = (Content.Chunks or 1);
+                            Content.PrevCharacterPosition = nil;
                         else
                             IncreaseCurrentCharacterPosition = true;
                             local String = string.sub(Content.Word,0,Content.CurrentCharacterPosition)
-                            local Char = string.sub(Content.Word,(Content.CurrentCharacterPosition or 1)-((Content.Chunk or 1)-1 ),Content.CurrentCharacterPosition)
-                            print(Content.Chunk," is chunk ",Char,#Char,Content.CurrentCharacterPosition)
+                            local Char = string.sub(Content.Word,(Content.PrevCharacterPosition or 0) +1 ,Content.CurrentCharacterPosition)
                             local Txt = Instance.new("TextLabel");
                             Txt.Name = Char;
                             Content.CurrentCharTxt = Txt;
@@ -139,27 +147,40 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
         end
         --> validators
         if not IncreaseCurentIndex and not IncreaseCurentIndexPosition and not IncreaseCurrentCharacterPosition and not Pass then
-            Content:Break(); print("break2"); return
-        elseif Pass then
-            Content.Timer = 0;
-        elseif IncreaseCurentIndex then
+            Content:Break(); return
+        end
+        if IncreaseCurentIndex then
             Content.CurrentIndex = (Content.CurrentIndex or 1)+1;
             local fetch = Content.Sequence[Content.CurrentIndex];
             if fetch ~= nil and fetch.Params ~= nil then
                 Content.CurrentStep = fetch.Params.step;
-                Content.Chunk = fetch.Params.chunks;
+                Content.Chunks = fetch.Params.chunks;
+                Content.CurrentScale = fetch.Params.scale
+                Content.CurrentColor = fetch.Params.color;
+                Content.CurrentTransparency = fetch.Params.transparency
+                Content.CurrentSpeed = fetch.Params.speed
+                Content.CurrentAmplitude = fetch.Params.amplitude
             else
-                Content.Chunk = nil;
+                Content.CurrentAmplitude = nil;
+                Content.CurrentSpeed = nil;
+                Content.CurrentTransparency = nil;
+                Content.CurrentColor = nil;
+                Content.CurrentScale = nil;
+                Content.Chunks = nil;
                 Content.CurrentStep = nil;
             end
-            Content.Timer = 0;
         elseif IncreaseCurentIndexPosition then
             Content.CurrentIndexPosition = (Content.CurrentIndexPosition or 1)+1;
-            Content.Timer = 0;
         elseif IncreaseCurrentCharacterPosition then
-            Content.CurrentCharacterPosition = (Content.CurrentCharacterPosition or 1)+(Content.Chunk or 1);
-            Content.Timer = 0;
+            local Chunk = (Content.Chunks or 1)
+            Content.PrevCharacterPosition = Content.CurrentCharacterPosition
+            if Content.CurrentCharacterPosition < Content.WordLength and Content.CurrentCharacterPosition+Chunk > Content.WordLength then
+                Content.CurrentCharacterPosition = Content.WordLength;
+            else
+                Content.CurrentCharacterPosition += Chunk;
+            end
         end
+        Content.Timer = 0;
     else
         Content.Timer = (Content.Timer and Content.Timer+WaitTime) or WaitTime;
     end

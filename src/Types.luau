@@ -29,9 +29,21 @@ export type PlayableType = {
     Break: (self: PlayableType) -> ();
     ---
 
-    Chunk: number?;
+    --props
+    CurrentScale: number?;
+    CurrentColor: Color3?;
+    CurrentTransparency: number?;
+    CurrentStep: number?;
+    CurrentSpeed: number?;
+    CurrentAmplitude: number?;
+    --
+    
+    PrevCharacterPosition: number?;
+    Chunks: number?;
+
     CurrentAnimations: {AnimatorType?};
     AnimationsLocked: boolean?;
+
     ListObject: UIListLayout;
     CurrentCharTxt: TextLabel?;
     PrevCharX: number;
@@ -43,11 +55,9 @@ export type PlayableType = {
     List: {}?;
     Timer: number?;
     CurrentIndex: number?;
-    CurrentCharacterPosition: number?;
-    CurrentIndexPosition: number?;
+    CurrentCharacterPosition: number;
+    CurrentIndexPosition: number;
     Frame: Frame;
-    CurrentStep: number?;
-    CurrentSpeed: number?;
 };
 export type textPlusType = {
     New: (Content: string,DefaultSettings: DefaultSettingsType?) -> PlayableType

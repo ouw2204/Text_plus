@@ -53,12 +53,13 @@ function module:Play(ParentFrame: Frame)
         AnimatorManager(self,waitTime,parentAbs)
     end)
     --< max allowed testing time
-    --[[task.delay(5,function()
+    task.delay(5,function()
         if self.RenderStep ~= nil then
             self.RenderStep:Disconnect();
             self.RenderStep = nil;
         end
-    end)]]
+        self.Frame:Clone().Parent = workspace
+    end)
     --> 
    
 end

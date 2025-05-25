@@ -1,5 +1,5 @@
 local Types = require(script.Types)
-local MainMetatable = require(script.MainMetatable)
+local MainMetatable = require(script.Handler)
 local Decrypter = require(script.Utility)
 return {
     New = function(Content: string,DefaultSettings: Types.DefaultSettingsType)

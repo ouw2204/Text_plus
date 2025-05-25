@@ -12,7 +12,7 @@ return function (Target: GuiBase)
         BackgroundColor3 = Color3.fromRGB(0,0,0);
         function(Thread: Types.Thread,Entity: GuiBase)
             -- do stuff
-            local Text = TextPlus.New("Hello world [RedText](Color = rgb<255,1,3>,step=.15,Transparency = .5,Style = Rainbow,Chunks=2) vvasd",{
+            local Text = TextPlus.New("Hello world [RedText](Color = rgb<255,1,3>,Scale=.75,speed=5,Transparency = .5,Style = Rainbow,Chunks=2) vvasd ",{
                 Size = 20;
                 XAlignment = Enum.TextXAlignment.Center;
                 YAlignment = Enum.TextYAlignment.Center;
