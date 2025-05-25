@@ -36,6 +36,9 @@ export type PlayableType = {
     CurrentStep: number?;
     CurrentSpeed: number?;
     CurrentAmplitude: number?;
+    Params: {
+        [string]: string|number?;
+    }?;
     --
     
     PrevCharacterPosition: number?;
