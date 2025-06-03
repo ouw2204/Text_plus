@@ -104,42 +104,165 @@ end
 
 module.Phase1 = function(input: any): {[any]: any}?
     if input == nil then return end
-
+    
     local result = {}
     local index = 1
     local lastPos = 1
-
-    -- Match: [Text] between (Params)
+    
+    -- First pass: Handle [Text](Params) patterns
+    local processedRanges = {}  -- Track what we've already processed
+    
     for startPos, textPart, between, params, endPos in input:gmatch("()%[([^%]]*)%](.-)%(([^%)]*)%)()") do
         -- Add any plain text before the current match
         if startPos > lastPos then
             local before = input:sub(lastPos, startPos - 1)
             if #before > 0 then
                 result[index] = before
-                index += 1
+                index = index + 1
             end
         end
-
-        -- Add the captured [Text]
+        
+        -- Add the captured [Text] with params
         result[index] = { Text = textPart, Params = module.Phase2(params) }
-        index += 1
-
-        -- Add the `between` text (space, formatting, etc.) as its own string
+        index = index + 1
+        
+        -- Add the `between` text if it exists
         if between and #between > 0 then
             result[index] = between
-            index += 1
+            index = index + 1
         end
-
-        lastPos = endPos -- endPos is already a number
+        
+        -- Mark this range as processed
+        processedRanges[#processedRanges + 1] = {startPos, endPos}
+        lastPos = endPos
     end
-
-    -- Add any remaining trailing text
-    if lastPos <= #input then
-        local remaining = input:sub(lastPos)
+    
+    -- Second pass: Handle standalone [Text] patterns (without parentheses)
+    -- Reset for second pass
+    local tempLastPos = 1
+    local tempResult = {}
+    local tempIndex = 1
+    
+    -- Function to check if position is already processed
+    local function isProcessed(pos)
+        for _, range in ipairs(processedRanges) do
+            if pos >= range[1] and pos < range[2] then
+                return true
+            end
+        end
+        return false
+    end
+    
+    for startPos, textPart, endPos in input:gmatch("()%[([^%]]*)%]()") do
+        -- Skip if this bracket pair is already processed (has parentheses)
+        if not isProcessed(startPos) then
+            -- Add text before this match
+            if startPos > tempLastPos then
+                local before = input:sub(tempLastPos, startPos - 1)
+                if #before > 0 then
+                    tempResult[tempIndex] = before
+                    tempIndex = tempIndex + 1
+                end
+            end
+            
+            -- Add the standalone [Text] with Params = false
+            tempResult[tempIndex] = { Text = textPart, Params = false }
+            tempIndex = tempIndex + 1
+            
+            tempLastPos = endPos
+        end
+    end
+    
+    -- Add remaining text from second pass
+    if tempLastPos <= #input then
+        local remaining = input:sub(tempLastPos)
         if #remaining > 0 then
-            result[index] = remaining
+            tempResult[tempIndex] = remaining
         end
     end
+    
+    -- Merge results if we found standalone brackets
+    if #tempResult > 0 then
+        -- Combine and sort all matches by position
+        local allMatches = {}
+        
+        -- Add parametered matches
+        local pos = 1
+        for startPos, textPart, between, params, endPos in input:gmatch("()%[([^%]]*)%](.-)%(([^%)]*)%)()") do
+            table.insert(allMatches, {
+                pos = startPos,
+                endPos = endPos,
+                type = "with_params",
+                text = textPart,
+                params = params,
+                between = between
+            })
+        end
+        
+        -- Add standalone matches
+        for startPos, textPart, endPos in input:gmatch("()%[([^%]]*)%]()") do
+            if not isProcessed(startPos) then
+                table.insert(allMatches, {
+                    pos = startPos,
+                    endPos = endPos,
+                    type = "standalone",
+                    text = textPart
+                })
+            end
+        end
+        
+        -- Sort by position
+        table.sort(allMatches, function(a, b) return a.pos < b.pos end)
+        
+        -- Rebuild result in correct order
+        result = {}
+        index = 1
+        lastPos = 1
+        
+        for _, match in ipairs(allMatches) do
+            -- Add text before match
+            if match.pos > lastPos then
+                local before = input:sub(lastPos, match.pos - 1)
+                if #before > 0 then
+                    result[index] = before
+                    index = index + 1
+                end
+            end
+            
+            -- Add the match
+            if match.type == "with_params" then
+                result[index] = { Text = match.text, Params = module.Phase2(match.params) }
+                index = index + 1
+                if match.between and #match.between > 0 then
+                    result[index] = match.between
+                    index = index + 1
+                end
+            else
+                result[index] = { Text = match.text, Params = false }
+                index = index + 1
+            end
+            
+            lastPos = match.endPos
+        end
+        
+        -- Add final remaining text
+        if lastPos <= #input then
+            local remaining = input:sub(lastPos)
+            if #remaining > 0 then
+                result[index] = remaining
+            end
+        end
+    else
+        -- No standalone brackets found, use original result
+        -- Add any remaining trailing text from first pass
+        if lastPos <= #input then
+            local remaining = input:sub(lastPos)
+            if #remaining > 0 then
+                result[index] = remaining
+            end
+        end
+    end
+    
     return result
 end
 module.Phase1_by_ouw = function(input: any): {[any]: any}?

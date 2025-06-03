@@ -12,7 +12,7 @@ return function (Target: GuiBase)
         BackgroundColor3 = Color3.fromRGB(0,0,0);
         function(Thread: Types.Thread,Entity: GuiBase)
             -- do stuff
-            local Text = TextPlus.New("Hello world this [#](img=115664934599527) is an image",{
+            local Text = TextPlus.New("Hello world this [#](img=115664934599527) is an image, again: [#](img=115664934599527,Scale=.35)",{
                 Size = 20;
                 XAlignment = Enum.TextXAlignment.Center;
                 YAlignment = Enum.TextYAlignment.Center;

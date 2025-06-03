@@ -56,50 +56,89 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                 if Content.List ~= nil then
                     if Content.Word == nil then
                         Pass = true;
-                        if Content.Params ~= nil and Content.Word == "#" then
-                            
-                        end
                         Content.Word = Content.List[Content.CurrentIndexPosition];
                         Content.WordLength = #Content.Word;
-                        Content.CurrentCharacterPosition = (Content.Chunks or 1);
-                        Content.PrevCharX = 0;
-                        local WordInstance = Instance.new("TextLabel");
-                        WordInstance.Name = Content.Word;
-                        WordInstance.Parent = Content.Frame;
-                        WordInstance.TextTransparency = .5;
-                        WordInstance.TextSize = TextSize;
-                        WordInstance.Text = Content.Word;
-                        WordInstance.TextXAlignment = Content.Settings.XAlignment or Enum.TextXAlignment.Left;
-                        WordInstance.TextYAlignment = Content.Settings.YAlignment or Enum.TextYAlignment.Top;
-                        WordInstance.BackgroundTransparency = 1;
-                        if Content.Settings.FontFace ~= nil then
-                            WordInstance.FontFace = Content.Settings.FontFace;
-                        else
-                            WordInstance.Font = Content.Settings.Font or Enum.Font.SourceSans;
+                        
+                        --<ids
+                        if Content.Params ~= nil and (Content.Word == "#" or string.find(Content.Word,"#")) then
+                            if Content.Word == "#" and Content.Params then
+                                --< image
+                                if Content.Params.img ~= nil then
+                                    local Image = Instance.new("ImageLabel");
+                                    Image.Name = "img - "..Content.Params.img
+                                    Image.Size = if Content.Settings.Scaled then UDim2.fromScale(TextSize/parentAbs.X,TextSize/parentAbs.Y) else UDim2.fromOffset(TextSize,TextSize)
+                                    Image.Parent = Content.Frame;
+                                    Image.BackgroundTransparency = 1;
+                                    Image.Image = "rbxassetid://"..Content.Params.img
+                                    Pass = false;
+                                    IncreaseCurentIndexPosition = true;
+                                    Content.Word = nil;
+                                end
+                                --> image
+                            else
+                                --< functions
+                                local id = string.sub(Content.Word,math.min(2,Content.WordLength),Content.WordLength)
+                                if id ~= nil then
+                                    if Content.Functions ~= nil then
+                                        local fetched = Content.Functions[id]();
+                                        if fetched ~= id and fetched ~= nil then
+                                            Content.WordLength = #fetched
+                                        else
+                                            Content.WordLength -=1
+                                        end
+                                        id = fetched or id
+                                    end
+                                    Content.Word = id;
+                                end
+                                --> functions
+                            end
                         end
-                        WordInstance.TextColor3 = Content.Settings.Color or Color3.new(1,1,1);
-                        local Bounds = WordInstance.TextBounds;
-                        if Content.Settings.Scaled then
-                            WordInstance.Size = UDim2.fromScale(Bounds.X/parentAbs.X,TextSize/parentAbs.Y);
-                            WordInstance.TextScaled = true;
-                        else
-                            WordInstance.Size = UDim2.fromOffset(Bounds.X,TextSize);
+                        --> ids
+                        
+                        if Pass then
+                            --< word instance creation
+                            Content.CurrentCharacterPosition = (Content.Chunks or 1);
+                            Content.PrevCharX = 0;
+                            local WordInstance = Instance.new("TextLabel");
+                            WordInstance.Name = Content.Word;
+                            WordInstance.Parent = Content.Frame;
+                            WordInstance.TextTransparency = .5;
+                            WordInstance.TextSize = TextSize;
+                            WordInstance.Text = Content.Word;
+                            WordInstance.TextXAlignment = Content.Settings.XAlignment or Enum.TextXAlignment.Left;
+                            WordInstance.TextYAlignment = Content.Settings.YAlignment or Enum.TextYAlignment.Top;
+                            WordInstance.BackgroundTransparency = 1;
+                            if Content.Settings.FontFace ~= nil then
+                                WordInstance.FontFace = Content.Settings.FontFace;
+                            else
+                                WordInstance.Font = Content.Settings.Font or Enum.Font.SourceSans;
+                            end
+                            WordInstance.TextColor3 = Content.Settings.Color or Color3.new(1,1,1);
+                            local Bounds = WordInstance.TextBounds;
+                            if Content.Settings.Scaled then
+                                WordInstance.Size = UDim2.fromScale(Bounds.X/parentAbs.X,TextSize/parentAbs.Y);
+                                WordInstance.TextScaled = true;
+                            else
+                                WordInstance.Size = UDim2.fromOffset(Bounds.X,TextSize);
+                            end
+                            Content.WordInstance = WordInstance;
+                            local ContentSize = Content.ListObject.AbsoluteContentSize;
+                            if not Content.Settings.Overfill and (ContentSize.X > parentAbs.X or ContentSize.Y > parentAbs.Y) then
+                                WordInstance.Parent = nil;
+                                WordInstance:Destroy();
+                                Content:Break();
+                                return
+                            end
+                            if string.match(Content.Word,"%s+") == Content.Word then
+                                Content.Word = nilset;
+                                IncreaseCurentIndexPosition = true;
+                            end
                         end
-                        Content.WordInstance = WordInstance;
-                        local ContentSize = Content.ListObject.AbsoluteContentSize;
-                        if not Content.Settings.Overfill and (ContentSize.X > parentAbs.X or ContentSize.Y > parentAbs.Y) then
-                            WordInstance.Parent = nil;
-                            WordInstance:Destroy();
-                            Content:Break();
-                            return
-                        end
-                        if string.match(Content.Word,"%s+") == Content.Word then
-                            Content.Word = nilset;
-                            IncreaseCurentIndexPosition = true;
-                        end
+                        --> word instance creation
                     end
                         
                     if Content.Word ~= nil then
+                        --< letters
                         if Content.CurrentCharTxt ~= nil then
                             Content.CurrentCharTxt.TextTransparency = 0;
                         end;
@@ -139,6 +178,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             Txt.Size = UDim2.fromScale(X,1);
                             Content.PrevCharX = FullBounds;
                         end
+                        --> letters
                     end
                 else
                     IncreaseCurentIndexPosition = true;
@@ -153,14 +193,18 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
             Content.CurrentIndex = (Content.CurrentIndex or 1)+1;
             local fetch = Content.Sequence[Content.CurrentIndex];
             if fetch ~= nil and fetch.Params ~= nil then
-                Content.CurrentStep = fetch.Params.step;
-                Content.Chunks = fetch.Params.chunks;
-                Content.CurrentScale = fetch.Params.scale
-                Content.CurrentColor = fetch.Params.color;
-                Content.CurrentTransparency = fetch.Params.transparency
-                Content.CurrentSpeed = fetch.Params.speed
-                Content.CurrentAmplitude = fetch.Params.amplitude
+                if fetch.Params then
+                    Content.CurrentStep = fetch.Params.step;
+                    Content.Chunks = fetch.Params.chunks;
+                    Content.CurrentScale = fetch.Params.scale
+                    Content.CurrentColor = fetch.Params.color;
+                    Content.CurrentTransparency = fetch.Params.transparency
+                    Content.CurrentSpeed = fetch.Params.speed
+                    Content.CurrentAmplitude = fetch.Params.amplitude
+                end;
+                Content.Params = fetch.Params;
             else
+                Content.Params =nil;
                 Content.CurrentAmplitude = nil;
                 Content.CurrentSpeed = nil;
                 Content.CurrentTransparency = nil;
@@ -180,8 +224,9 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                 Content.CurrentCharacterPosition += Chunk;
             end
         end
-        Content.Timer = 0;
+        --> validators
+        Content.Timer = 0; -- timer reset
     else
-        Content.Timer = (Content.Timer and Content.Timer+WaitTime) or WaitTime;
+        Content.Timer = (Content.Timer and Content.Timer+WaitTime) or WaitTime; -- timer update
     end
 end
