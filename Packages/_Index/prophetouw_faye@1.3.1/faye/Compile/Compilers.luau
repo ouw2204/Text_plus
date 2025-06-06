@@ -2,13 +2,25 @@ local tins,tf,tr = table.insert,table.find,table.remove
 local tof = typeof
 local ValueClasses = require(script.Parent.Parent.Misc.ValueClasses)
 local tc = table.clear
-
+local Types = require(script.Parent.Parent.Types)
+function repeatedCompile(Index: number,Thread: Types.Thread,Ret: any,Compile: () -> (),Entity: any)
+    if Ret ~= nil then
+        if tof(Index) ~= "number" and typeof(Entity.Instance[Index]) ~= "RBXScriptSignal" then
+            Entity.Instance[Index] = Ret;
+        else
+            Compile(Entity,(tof(Ret) == "table" and Ret.__type == nil and Ret) or {Ret},Thread)
+        end
+    end
+end
 local m = {
     SetTo = function(Entity,Index,Value)
         if Value["Value"] ~= nil and Value.Value["Set"] ~= nil then
             Value.Value:Set(Entity)
         end
         Value:Destroy();
+    end;
+    Spawn = function(Entity,Index,Value,Compile)
+        Value:Perform(Entity,Index,Compile,Entity.Thread or Value.Thread);
     end;
     Instance = function(Entity,Index,Value,Compile,From)
         local Props = Value.Props;
@@ -43,12 +55,97 @@ local m = {
         local Instance = Entity.Instance;
         local Thread = Entity.InnerThread or Entity.Thread
         if Init == true then
-            Value(Instance,Instance[Index])
+            local Ret = Value(Instance,Instance[Index])
+            if Ret ~= nil then
+                repeatedCompile(Index,Thread,Ret,Compile,Entity)
+                Ret = nil;
+            end
         end
         Thread:Connect(Instance:GetPropertyChangedSignal(Index),function()
-            Value(Instance,Instance[Index])
+            local Ret = Value(Instance,Instance[Index])
+            if Ret ~= nil then
+                repeatedCompile(Index,Thread,Ret,Compile,Entity)
+                Ret = nil;
+            end;
         end)
     end;
+    EventCompiler = function(Entity,Index,Value,Compile)
+        local Instance = Entity.Instance;
+        local Thread = Entity.InnerThread or Entity.Thread -- fetching innerthread or thread with priority
+        if Thread ~= nil then -- thread exist
+            if Thread["Connect"] ~= nil then
+                Thread:Connect(Instance[Index],function(...)
+                    local Ret = Value(Instance,...)
+                    if Ret ~= nil then
+                        repeatedCompile(Index,Thread,Ret,Compile,Entity)
+                        Ret = nil;
+                    end
+                end)
+            elseif Thread["Add"] ~= nil then -- is a specialized cleaner
+                Thread:Add(Instance[Index]:Connect(function(...)
+                    local Ret = Value(Instance,...)
+                    if Ret ~= nil then
+                        repeatedCompile(Index,Thread,Ret,Compile,Entity)
+                        Ret = nil;
+                    end
+                end),true)
+            else
+                tins(Thread,Instance[Index]:Connect(function(...)
+                    local Ret = Value(Instance,...)
+                    if Ret ~= nil then
+                        repeatedCompile(Index,Thread,Ret,Compile,Entity)
+                        Ret = nil;
+                    end
+                end))
+            end
+        else -- no threads
+            Instance[Index]:Connect(function(...)
+                local Ret = Value(Instance,...)
+                if Ret ~= nil then
+                    repeatedCompile(Index,Thread,Ret,Compile,Entity)
+                    Ret = nil;
+                end
+            end)
+        end
+        
+        --Thread = nil;   
+    end;
+    Event = function(Entity,Index,Value)
+        local Thread = Entity.InnerThread or Entity.Thread
+        if Value.__Thread ~= Thread then
+            if Value.__Thread ~= nil then
+                if Value.__Thread["Remove"] then
+                    Value.__Thread:Remove(Value)
+                else
+                    local f = tf(Value.__Thread,Value)
+                    if f ~= nil then
+                        tr(Value.__Thread,f)
+                    end
+                end
+
+                if Value.__currentcleaner ~= nil then
+                    if Value.__Thread["Remove"] then
+                        Value.__Thread:Remove(Value.__currentcleaner)
+                    else
+                        local pos = tf(Value.__Thread,Value.__currentcleaner)
+                        if pos ~= nil then
+                            tr(Value.__Thread,pos)
+                        end
+                    end
+                    if Thread["Add"] then
+                        Thread:Add(Value.__currentcleaner)
+                    else
+                        tins(Thread,Value.__currentcleaner)
+                    end
+                end
+            end;
+            Value.__Thread = Thread;
+        end
+        Value.__entity = Entity;
+        if (tof(Index) ~= "number") then
+            Value.__property = Index;
+        end
+    end,
     Iterate = function(Entity,Index,Value,Compile)
         local Instance = Entity.Instance;
         local Thread = Entity.InnerThread or Entity.Thread
@@ -125,8 +222,8 @@ local m = {
             else
                 if Value.Tab.__type ~= nil and ValueClasses[Value.Tab.__type] ~= nil then
                     --first degree
-                    local function step(Index,Value,ChangeType)
-                        if Value == nil then
+                    local function step(Index: any?,Value: any?,ChangeType: number?)
+                        if Value == nil and ChangeType == nil then
                             CleanHolder()
                             if Connect2 ~= nil and Connect2["Disconnect"] ~= nil then
                                 Connect2:Disconnect()
@@ -487,30 +584,6 @@ local m = {
         Info = nil;
         Thread = nil;
     end;
-    Event = function(Entity,Index,Value)
-        local Instance = Entity.Instance;
-        local Thread = Entity.InnerThread or Entity.Thread -- fetching innerthread or thread with priority
-        if Thread ~= nil then -- thread exist
-            if Thread["Connect"] ~= nil then
-                Thread:Connect(Instance[Index],function(...)
-                    Value(Instance,...)
-                end)
-            elseif Thread["Add"] ~= nil then -- is a specialized cleaner
-                Thread:Add(Instance[Index]:Connect(function(...)
-                    Value(Instance,...)
-                end),true)
-            else
-                tins(Thread,Instance[Index]:Connect(function(...)
-                    Value(Instance,...)
-                end))
-            end
-        else -- no threads
-            Instance[Index]:Connect(function(...)
-                Value(Instance,...)
-            end)
-        end
-        Thread = nil;
-    end;
     Value = function(Entity,Index,Value)
         local Instance = Entity.Instance;
         local ChangedConnection = nil;
@@ -520,9 +593,10 @@ local m = {
                 ChangedConnection:Disconnect();
                 ChangedConnection = nil;
             end
-            if tof(new) == "table" then
+            local tooff = tof(new) == "table"
+            if tooff and new.__type ~= nil and ValueClasses[new.__type] ~= nil then
                 --the value is a table
-                if new.__type ~= nil and ValueClasses[new.__type] ~= nil then
+                --if  then
                     --is nested state
                     local function InnerUpdate(newValue)
                         --set value from nested value
@@ -532,7 +606,7 @@ local m = {
                             if Entity ~= nil and Instance ~= nil then
                                 local tofIndex = tof(Instance[Index])
                                 local tofNew = tof(newValue)
-                                if tofIndex == tofNew or ((tofIndex == "number" or tofIndex == "string") and (tofNew == "number" or tofNew == "string")) then
+                                if tofIndex == tofNew or (tofIndex == "nil" and tofNew ~= nil) or ((tofIndex == "number" or tofIndex == "string") and (tofNew == "number" or tofNew == "string")) then
                                     Instance[Index] = newValue;
                                 end
                                 tofIndex = nil;
@@ -542,12 +616,15 @@ local m = {
                     end
                     InnerUpdate(new:Get())
                     ChangedConnection = new.Changed:Connect(InnerUpdate) --connect change connection
-                end
+                --end
             else
                 if Entity ~= nil and Instance ~= nil then
+                    if tooff then
+                        new = new.Instance or new
+                    end
                     local tofIndex = tof(Instance[Index])
                     local tofNew = tof(new)
-                    if tofIndex == tofNew or ((tofIndex == "number" or tofIndex == "string") and (tofNew == "number" or tofNew == "string")) then
+                    if tofIndex == tofNew or (tofIndex == "nil" and tofNew ~= nil) or ((tofIndex == "number" or tofIndex == "string") and (tofNew == "number" or tofNew == "string")) then
                         Instance[Index] = new;
                     end
                     tofIndex = nil;

@@ -22,6 +22,7 @@ return {
 
         Content = Content or "";
         return setmetatable({
+            Animations = {};
             Sequence = Decrypter.Phase1(Content);
             Settings = DefaultSettings;
         },MainMetatable)

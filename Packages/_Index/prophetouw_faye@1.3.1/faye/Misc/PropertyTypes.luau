@@ -117,7 +117,7 @@ export type Property = {
 	CFrame: CFrame?,
 	FieldOfView: number?,
 	Focus: CFrame?,
-	
+	TextWrapped: boolean?;
 	TextXAlignment: Enum.TextXAlignment?;
 	TextYAlignment: Enum.TextYAlignment?;
 	-- UI Element Properties (TextLabel, TextButton, ImageLabel, ImageButton, etc.)
@@ -129,7 +129,8 @@ export type Property = {
 	BackgroundTransparency: number?,
 	BorderColor3: Color3?,
 	BorderSizePixel: number?,
-	Size: UDim2? | Vector3?,
+	Size: Vector3?,
+	Size: UDim2?,
 	Position: UDim2?,
 	AnchorPoint: Vector2?,
 	Visible: boolean?,

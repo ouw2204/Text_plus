@@ -13,6 +13,7 @@ export type DefaultSettingsType = {
     Chunks: number?;
     Speed: number?;
     Scale: number?;
+    Style: number?;
 };
 export type AnimatorType = {
     Letters: {TextLabel};
@@ -20,6 +21,8 @@ export type AnimatorType = {
     Destroy: (self: AnimatorType) -> ();
     AddLetter: (self: AnimatorType, Letter: TextLabel) -> ();
     Index: number;
+    DefaultSize: {[TextLabel]: UDim2};
+    DefaultPosition: {[TextLabel]: UDim2};
 }
 export type PlayableType = {
     Play: (self: PlayableType) -> ();
@@ -44,11 +47,11 @@ export type PlayableType = {
     PrevCharacterPosition: number?;
     Chunks: number?;
 
-    CurrentAnimations: {AnimatorType?};
-    AnimationsLocked: boolean?;
+    Animations: {AnimatorType?};
+    CurrentAnimation: AnimatorType?;
 
     ListObject: UIListLayout;
-    CurrentCharTxt: TextLabel?;
+    --CurrentCharTxt: TextLabel?;
     PrevCharX: number;
     WordInstance: TextLabel;
     Word: string;

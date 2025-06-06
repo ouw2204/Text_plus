@@ -1,6 +1,6 @@
 local Threader = require(script.Parent.Parent.Packages.faye)
 local TextPlus = require(script.Parent.Parent)
-local Types = require(script.Parent.Parent.Packages._Index["prophetouw_faye@1.2.2"].faye.Types)
+local Types = require(script.Parent.Parent.Packages._Index["prophetouw_faye@1.3.1"].faye.Types)
 return function (Target: GuiBase)
     local Thread = Threader();
     Thread:Create "Frame" {
@@ -10,7 +10,7 @@ return function (Target: GuiBase)
         Size = UDim2.fromScale(.3,.4);
         BackgroundTransparency = .5;
         BackgroundColor3 = Color3.fromRGB(0,0,0);
-        function(Thread: Types.Thread,Entity: GuiBase)
+        function(Entity: GuiBase)
             -- do stuff
             local Text = TextPlus.New("Hello world this [#](img=115664934599527) is an image, again: [#](img=115664934599527,Scale=.35)",{
                 Size = 20;

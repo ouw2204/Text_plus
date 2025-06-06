@@ -131,9 +131,14 @@ local Do = require(Utilities.Do)
 function mt:Do(Function: (Grab: any, Entity: Instance) -> ())
     return Do(Function,self)
 end
+--Do
+local Spawn = require(Utilities.Spawn)
+function mt:Spawn(func: (...any) -> ())
+    return Spawn(func,self)
+end
 --State
 local State = require(Utilities.State)
-function mt:State(Function: (Grab: any, InnerThread: Types.Thread,Entity: Instance) -> ())
+function mt:State(Function: (Grab: any, InnerEntity: Instance) -> ())
     return State(Function,self)
 end
 --Iterate
@@ -171,14 +176,21 @@ local Signal = require(Utilities.Signal)
 function mt:Signal()
     return Signal(self)
 end
---Event
-local Eventt = require(Utilities.Event)
-function mt:Event(Entity: any, Event: any, Function: () -> ()) : ()
-    return Eventt(Entity,Event,Function,self)
+--Listener
+local Listener = require(Utilities.Listener)
+function mt:Listener(Entity: any, Event: any, Function: () -> ()) : ()
+    return Listener(Entity,Event,Function,self)
 end
 local Space = require(Utilities.Space)
 function mt:Space(func: (...any) -> ())
     return Space(func,self);
+end
+local Event = require(Utilities.Event)
+function mt:Event(Connections: RBXScriptSignal & {RBXScriptSignal},func: (...any) -> ())
+    return Event(Connections, func,self);
+end
+function mt:EventState(Connections: RBXScriptSignal & {RBXScriptSignal},func: (...any) -> ())
+    return Event(Connections, func,self,true);
 end
 local scriptName = script.Name;
 function mt.__tostring()

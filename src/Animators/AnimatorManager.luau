@@ -1,12 +1,13 @@
 local module = {}
 module.__index = module;
 local Types = require(script.Parent.Parent.Types)
-local Defaults = {
-    Speed = 1;
-    Step = .01;
-}
+local Defaults = require(script.Parent.Defaults)
 local nilset = nil;
+local AnimatorClass = require(script.Parent.AnimatorClass);
 local Utility = require(script.Parent.Parent.Utility);
+
+local tins = table.insert
+
 return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2)
     if Content.Timer == nil or Content.Timer+WaitTime > (Content.CurrentStep or Content.Settings.Step or Defaults.Step)/(Content.CurrentSpeed or Content.Settings.Speed or Defaults.Speed) then
         local TextSize = Content.Settings.Size;
@@ -102,7 +103,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             local WordInstance = Instance.new("TextLabel");
                             WordInstance.Name = Content.Word;
                             WordInstance.Parent = Content.Frame;
-                            WordInstance.TextTransparency = .5;
+                            WordInstance.TextTransparency = 1;
                             WordInstance.TextSize = TextSize;
                             WordInstance.Text = Content.Word;
                             WordInstance.TextXAlignment = Content.Settings.XAlignment or Enum.TextXAlignment.Left;
@@ -127,11 +128,18 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                                 WordInstance.Parent = nil;
                                 WordInstance:Destroy();
                                 Content:Break();
+                                Content.CurrentAnimation = nil;
                                 return
                             end
+                            print("through")
                             if string.match(Content.Word,"%s+") == Content.Word then
                                 Content.Word = nilset;
+                                Content.CurrentAnimation = nil;
                                 IncreaseCurentIndexPosition = true;
+                            else
+                                local Animation = AnimatorClass(Content.WordInstance,Content.Params,Content.Settings);
+                                tins(Content.Animations,Animation);
+                                Content.CurrentAnimation = Animation;
                             end
                         end
                         --> word instance creation
@@ -139,9 +147,9 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                         
                     if Content.Word ~= nil then
                         --< letters
-                        if Content.CurrentCharTxt ~= nil then
+                        --[[if Content.CurrentCharTxt ~= nil then
                             Content.CurrentCharTxt.TextTransparency = 0;
-                        end;
+                        end;]]
                         if Content.CurrentCharacterPosition > Content.WordLength then
                             IncreaseCurentIndexPosition = true;
                             Content.Word = nilset;
@@ -149,13 +157,14 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             Content.CurrentCharTxt = nil;
                             Content.CurrentCharacterPosition = (Content.Chunks or 1);
                             Content.PrevCharacterPosition = nil;
+                            Content.CurrentAnimation = nil;
                         else
                             IncreaseCurrentCharacterPosition = true;
                             local String = string.sub(Content.Word,0,Content.CurrentCharacterPosition)
                             local Char = string.sub(Content.Word,(Content.PrevCharacterPosition or 0) +1 ,Content.CurrentCharacterPosition)
                             local Txt = Instance.new("TextLabel");
                             Txt.Name = Char;
-                            Content.CurrentCharTxt = Txt;
+                            --Content.CurrentCharTxt = Txt;
                             Txt.Size = UDim2.fromScale(1,1);
                             Txt.TextTransparency = 1;
                             Txt.Position = UDim2.fromScale(Content.PrevCharX/Content.WordInstance.AbsoluteSize.X,0);
@@ -177,6 +186,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             local X = Difference/Content.WordInstance.AbsoluteSize.X
                             Txt.Size = UDim2.fromScale(X,1);
                             Content.PrevCharX = FullBounds;
+                            Content.CurrentAnimation:AddLetter(Txt)
                         end
                         --> letters
                     end

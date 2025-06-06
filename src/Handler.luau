@@ -64,7 +64,9 @@ function module:Play(ParentFrame: Frame)
    
 end
 function module:Break()
-    -- "Break"
+    for i,v in pairs(self.Animations) do
+        v:Destroy()
+    end
     if self.RenderStep ~= nil then
         self.RenderStep:Disconnect();
         self.RenderStep = nil;

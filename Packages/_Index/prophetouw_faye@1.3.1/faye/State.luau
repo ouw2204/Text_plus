@@ -99,12 +99,22 @@ return function(FunctionToFire,Thread)
     setmetatable(new,mt);
     function new.Grab(Value)
         if Value == nil then return end;
-        if new.Listening[Value.Id] == nil then
-            new.Listening[Value.Id] = true;
-            tins(new.Connections,Value.Changed:Connect(new.OnValueChanged))
+        if Value.ClassName ~= nil then
+            local FullName = Value:GetFullName();
+            if new.Listening[FullName] == nil then
+                new.Listening[FullName] = true;
+                tins(new.Connections,Value.Changed:Connect(new.OnValueChanged))
+            end
+            return Value.Value;
+        else
+            if new.Listening[Value.Id] == nil then
+                new.Listening[Value.Id] = true;
+                tins(new.Connections,Value.Changed:Connect(new.OnValueChanged))
+            end
+    
+            return Value:Get();
         end
-
-        return Value:Get();
+        
     end
     function new.OnValueChanged()
         if new.Entity == nil or new.Entity.Instance == nil then return end;
@@ -120,7 +130,16 @@ return function(FunctionToFire,Thread)
             Clean(new.CurrentCleaner)
             new.CurrentCleaner = nil;
         end
-        new.CurrentCleaner = new.Thread:Extend();
+        if new.Thread["Extend"] then
+            new.CurrentCleaner = new.Thread:Extend();
+        else
+            new.CurrentCleaner = {};
+            if new.Thread["Add"] then
+                new.Thread:Add(new.CurrentCleaner)
+            else
+                tins(new.Thread,new.CurrentCleaner)
+            end
+        end
         new.CurrentCleaner._isCleanAncestor = new.Thread._isCleanAncestor
         local result,r1 = new.Function(new.Grab,new.CurrentCleaner,(new.Entity ~= nil and new.Entity.Instance) or nil )
         
@@ -139,6 +158,7 @@ return function(FunctionToFire,Thread)
                     Compile(Entity,{result},new.CurrentCleaner)
                 end
             end
+            Entity = nil;
         else
             --clean
 

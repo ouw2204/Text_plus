@@ -4,10 +4,10 @@
 ]=]
 
 local PropertyTypes = require(script.Parent.Misc.PropertyTypes);
-
+local ValueClasses = require(script.Parent.Misc.ValueClasses)
+local Compilers = require(script.Parent.Compile.Compilers)
 local Compile = require(script.Parent.Compile)
 local Clean = require(script.Parent.Clean);
-local ValueClasses = require(script.Parent.Misc.ValueClasses);
 --
 local tr = table.remove
 local tins = table.insert
@@ -42,11 +42,6 @@ end
 function mt:Compile()
     local Props = self.Props;
     if Props ~= nil then
-        if Props.Parent ~= nil then
-            self.Instance.Parent = Props.Parent;
-            Props.Parent = nil;
-        end
-        self.Props = nil;
         local AddClean = nil;
         if Props.CleanDelay ~= nil or Props.OnClean ~= nil then
             if self.Thread ~= nil then
@@ -110,6 +105,17 @@ function mt:Compile()
         AddClean = nil;
         Props.CleanFunction = nil;
         Props.CleanDelay = nil;
+
+        if Props.Parent ~= nil then
+            local EqType = (typeof(Props.Parent) == "table" and ((ValueClasses[Props.Parent.__type] and "Value") or Props.Parent.__type)) or nil
+            if EqType ~= nil then
+                Compilers[ EqType ](self,"Parent",Props.Parent)
+            else
+                self.Instance.Parent = Props.Parent;
+            end
+            Props.Parent = nil;
+        end
+        self.Props = nil;
         Compile(self,Props)
     else
         self:Destroy();
