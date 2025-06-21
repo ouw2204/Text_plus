@@ -14,6 +14,8 @@ export type DefaultSettingsType = {
     Speed: number?;
     Scale: number?;
     Style: number?;
+    StepFactor: number?;
+    Amplitude: number?;
 };
 export type AnimatorType = {
     Letters: {TextLabel};

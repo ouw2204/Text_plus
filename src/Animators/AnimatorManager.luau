@@ -9,7 +9,7 @@ local Utility = require(script.Parent.Parent.Utility);
 local tins = table.insert
 
 return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2)
-    if Content.Timer == nil or Content.Timer+WaitTime > (Content.CurrentStep or Content.Settings.Step or Defaults.Step)/(Content.CurrentSpeed or Content.Settings.Speed or Defaults.Speed) then
+    if (Content.Timer == nil or Content.Timer+WaitTime > (Content.CurrentStep or Content.Settings.Step or Defaults.Step)/(Content.CurrentSpeed or Content.Settings.Speed or Defaults.Speed)) and Content.__Broke == nil then
         local TextSize = Content.Settings.Size;
         if Content.Settings.Scaled then
             TextSize = math.min(math.min(parentAbs.Y,100)* (Content.CurrentScale or Content.Settings.Scale or 1),100)
@@ -34,7 +34,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
         --< validators
         if Content.Count == nil or Content.Count == 0 then
             if Content.CurrentIndex >= Content.SequenceCount then
-                Content:Break(); print("break",Content.SequenceCount,Content.CurrentIndex); return
+                Content:Break(); return
             else
                 IncreaseCurentIndex = true;
                 if Content.List ~= nil then
@@ -127,29 +127,25 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             if not Content.Settings.Overfill and (ContentSize.X > parentAbs.X or ContentSize.Y > parentAbs.Y) then
                                 WordInstance.Parent = nil;
                                 WordInstance:Destroy();
+                                Content.Word = nilset;
                                 Content:Break();
                                 Content.CurrentAnimation = nil;
                                 return
                             end
-                            print("through")
                             if string.match(Content.Word,"%s+") == Content.Word then
                                 Content.Word = nilset;
                                 Content.CurrentAnimation = nil;
                                 IncreaseCurentIndexPosition = true;
                             else
-                                local Animation = AnimatorClass(Content.WordInstance,Content.Params,Content.Settings);
+                                local Animation = AnimatorClass(Content, Content.WordInstance,Content.Params,Content.Settings);
                                 tins(Content.Animations,Animation);
                                 Content.CurrentAnimation = Animation;
                             end
                         end
                         --> word instance creation
                     end
-                        
                     if Content.Word ~= nil then
                         --< letters
-                        --[[if Content.CurrentCharTxt ~= nil then
-                            Content.CurrentCharTxt.TextTransparency = 0;
-                        end;]]
                         if Content.CurrentCharacterPosition > Content.WordLength then
                             IncreaseCurentIndexPosition = true;
                             Content.Word = nilset;
@@ -167,9 +163,10 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             --Content.CurrentCharTxt = Txt;
                             Txt.Size = UDim2.fromScale(1,1);
                             Txt.TextTransparency = 1;
-                            Txt.Position = UDim2.fromScale(Content.PrevCharX/Content.WordInstance.AbsoluteSize.X,0);
                             Txt.Parent = Content.WordInstance;
                             Txt.TextSize = TextSize;
+                            Txt.TextScaled = true;
+                            Txt.AnchorPoint = Vector2.new(.5,.5);
                             Txt.TextXAlignment = Enum.TextXAlignment.Center;
                             Txt.TextYAlignment = Enum.TextYAlignment.Center;
                             Txt.BackgroundTransparency = 1;
@@ -185,6 +182,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             Txt.TextColor3 = Content.Settings.Color or Color3.new(1,1,1);
                             local X = Difference/Content.WordInstance.AbsoluteSize.X
                             Txt.Size = UDim2.fromScale(X,1);
+                            Txt.Position = UDim2.fromScale(Content.PrevCharX/Content.WordInstance.AbsoluteSize.X + X/2,.5);
                             Content.PrevCharX = FullBounds;
                             Content.CurrentAnimation:AddLetter(Txt)
                         end
@@ -238,5 +236,19 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
         Content.Timer = 0; -- timer reset
     else
         Content.Timer = (Content.Timer and Content.Timer+WaitTime) or WaitTime; -- timer update
+    end
+    local TotalAnims = #Content.Animations
+    if TotalAnims >0 then
+        for i = 1,TotalAnims do
+            local Animation = Content.Animations[i];
+            if Animation ~= nil and Animation.HasUpdate then 
+                Animation:Update()
+            end
+        end
+    elseif Content.__DeleteWhenDone then
+        if Content.RenderStep ~= nil then
+            Content.RenderStep:Disconnect();
+            Content.RenderStep = nil;
+        end
     end
 end

@@ -58,18 +58,20 @@ function module:Play(ParentFrame: Frame)
             self.RenderStep:Disconnect();
             self.RenderStep = nil;
         end
-        self.Frame:Clone().Parent = workspace
+        --self.Frame:Clone().Parent = workspace
     end)
     --> 
    
 end
 function module:Break()
-    for i,v in pairs(self.Animations) do
-        v:Destroy()
-    end
-    if self.RenderStep ~= nil then
-        self.RenderStep:Disconnect();
-        self.RenderStep = nil;
+    self.__Broke = true;
+    if #self.Animations == 0 then
+        if self.RenderStep ~= nil then
+            self.RenderStep:Disconnect();
+            self.RenderStep = nil;
+        end
+    else
+        self.__DeleteWhenDone = true;
     end
    
 end
