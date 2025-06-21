@@ -109,10 +109,10 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             WordInstance.TextXAlignment = Content.Settings.XAlignment or Enum.TextXAlignment.Left;
                             WordInstance.TextYAlignment = Content.Settings.YAlignment or Enum.TextYAlignment.Top;
                             WordInstance.BackgroundTransparency = 1;
-                            if Content.Settings.FontFace ~= nil then
-                                WordInstance.FontFace = Content.Settings.FontFace;
+                            if Content.Settings.FontFace ~= nil or Content.CurrentFontFace ~= nil then
+                                WordInstance.FontFace = Content.CurrentFontFace or Content.Settings.FontFace;
                             else
-                                WordInstance.Font = Content.Settings.Font or Enum.Font.SourceSans;
+                                WordInstance.Font = Content.CurrentFont or Content.Settings.Font or Enum.Font.SourceSans;
                             end
                             WordInstance.TextColor3 = Content.Settings.Color or Color3.new(1,1,1);
                             local Bounds = WordInstance.TextBounds;
@@ -170,10 +170,10 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             Txt.TextXAlignment = Enum.TextXAlignment.Center;
                             Txt.TextYAlignment = Enum.TextYAlignment.Center;
                             Txt.BackgroundTransparency = 1;
-                            if Content.Settings.FontFace ~= nil then
-                                Txt.FontFace = Content.Settings.FontFace;
+                            if Content.Settings.FontFace ~= nil or Content.CurrentFontFace ~= nil then
+                                Txt.FontFace = Content.CurrentFontFace or Content.Settings.FontFace;
                             else
-                                Txt.Font = Content.Settings.Font or Enum.Font.SourceSans;
+                                Txt.Font = Content.CurrentFont or Content.Settings.Font or Enum.Font.SourceSans;
                             end
                             Txt.Text = String;
                             local FullBounds = Txt.TextBounds.X;
@@ -209,9 +209,13 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                     Content.CurrentTransparency = fetch.Params.transparency
                     Content.CurrentSpeed = fetch.Params.speed
                     Content.CurrentAmplitude = fetch.Params.amplitude
+                    Content.CurrentFontFace = fetch.Params.fontface
+                    Content.CurrentFont = fetch.Params.font;
                 end;
                 Content.Params = fetch.Params;
             else
+                Content.CurrentFont = nil;
+                Content.CurrentAmplitude = nil;
                 Content.Params =nil;
                 Content.CurrentAmplitude = nil;
                 Content.CurrentSpeed = nil;

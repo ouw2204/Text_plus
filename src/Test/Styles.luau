@@ -7,7 +7,7 @@ return function (Target: GuiBase)
         Parent = Target;
         Position = UDim2.fromScale(.5,.5);
         AnchorPoint = Vector2.new(.5,.5);
-        Size = UDim2.fromScale(.3,.4);
+        Size = UDim2.fromScale(.45,.6);
         BackgroundTransparency = .5;
         BackgroundColor3 = Color3.fromRGB(0,0,0);
         function(Entity: GuiBase)

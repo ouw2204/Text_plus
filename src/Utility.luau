@@ -37,7 +37,13 @@ local SpecialCompilers = {
     ["color"] = function(value: string)
         if value == nil then return end;
         if string.find(value,"%<") == nil then
-            return Color3.fromHex(value)
+            if false then
+                --< id
+                --> id
+            else
+                --hex
+                return Color3.fromHex(value)
+            end
         else
             local mode, r, g, b = string.match(value, "^(.-)<%s*([+-]?%d*%.?%d+)%s*,%s*([+-]?%d*%.?%d+)%s*,%s*([+-]?%d*%.?%d+)%s*>")
             if not mode then
@@ -68,11 +74,30 @@ local SpecialCompilers = {
     end,
     ["transparency"] = tonumbfunc;
     ["chunks"] = tonumbfunc;
+    ["fontface"] = function(value: string)
+        if value == nil then return end;
+        if string.find(value,"%<") == nil then
+            --id
+        else
+            -- Pattern for text values in brackets: fromName<font,style,weight>
+            local mode, x, y, z = string.match(value, "^(.-)<%s*([^,]+)%s*,%s*([^,]+)%s*,%s*([^,>]+)%s*>")
+            if not mode then
+                -- Try without brackets for numeric values
+                mode, x, y, z = string.match(value, "^(%a+)%s*([+-]?%d*%.?%d+)%s*,%s*([+-]?%d*%.?%d+)%s*,%s*([+-]?%d*%.?%d+)")
+            end
+            if mode ~= nil and y ~= nil and z ~= nil then
+                print(x,"|",y,"|",z,"|",string.gsub(x," ","_"))
+                return Font[mode](string.gsub(x," ","_"),Enum.FontWeight[y],Enum.FontStyle[z])
+            end
+        end
+        
+        return nil
+    end
 }
 function module.Phase2(input: string?): {[any]: any}?
     if input == nil then return end;
     local result = {}
-    
+    print("Phase2")
     -- Method 1: Handle values that might contain commas in brackets
     -- This pattern matches key=value where value can contain brackets with commas
     local remaining = input
@@ -104,7 +129,6 @@ end
 
 module.Phase1 = function(input: any): {[any]: any}?
     if input == nil then return end
-    
     local result = {}
     local index = 1
     local lastPos = 1
@@ -123,7 +147,7 @@ module.Phase1 = function(input: any): {[any]: any}?
         end
         
         -- Add the captured [Text] with params
-        result[index] = { Text = textPart, Params = module.Phase2(params) }
+        result[index] = { Text = textPart, Params = params }
         index = index + 1
         
         -- Add the `between` text if it exists
@@ -194,7 +218,7 @@ module.Phase1 = function(input: any): {[any]: any}?
                 endPos = endPos,
                 type = "with_params",
                 text = textPart,
-                params = params,
+                params = module.Phase2(params),  -- Call Phase2 HERE instead
                 between = between
             })
         end
@@ -231,7 +255,7 @@ module.Phase1 = function(input: any): {[any]: any}?
             
             -- Add the match
             if match.type == "with_params" then
-                result[index] = { Text = match.text, Params = module.Phase2(match.params) }
+                result[index] = { Text = match.text, Params = match.params }
                 index = index + 1
                 if match.between and #match.between > 0 then
                     result[index] = match.between
