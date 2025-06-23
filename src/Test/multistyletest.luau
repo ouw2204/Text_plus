@@ -12,12 +12,11 @@ return function (Target: GuiBase)
         BackgroundColor3 = Color3.fromRGB(0,0,0);
         function(Entity: GuiBase)
             -- do stuff
-            local Text = TextPlus.New("First style: [Rainbow](style=Rainbow), Second style: [Fadeeee](style=Fade), Third style: [wiggle](style=Wiggle),Fourth style: [Pop](style=Pop,amplitude = 1.5), Fifth: [Shrink](style=Shrink), Sixth: [Rise](style=Rise), and Seventh: [Drop](style=Drop)",{
-                Size = 20;
+            local Text = TextPlus.New("First style: [Rainbow](style={{Rainbow,Reverse=true,Repeat = 1},Shrink,{Drop,Reverse = true,DelayTime = .25}},Amplitude = 2)",{
+                --Size = 20;
                 XAlignment = Enum.TextXAlignment.Center;
                 YAlignment = Enum.TextYAlignment.Center;
                 Scale = .5;
-                Transparency =  .5;
             });
             Text:Play(Entity)
         end

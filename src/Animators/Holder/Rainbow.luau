@@ -21,7 +21,7 @@ end
 
 local Step = 1/8
 local mf = math.floor
-return function(Letter: TextLabel,Progress: number,Transparency: number,Color: Color3,Size: UDim2,Position: UDim2,Amplitude: number?,Initial: boolean?)
+return function(Letter: TextLabel,Progress: number,Transparency: number,Color: Color3,Size: UDim2,Position: UDim2,Amplitude: number?,Reversing: boolean?)
     local Current = mf(Progress*7)
     local CurentScope = (Current*(Step))
     local prog = (Progress-CurentScope)/Step
@@ -30,7 +30,4 @@ return function(Letter: TextLabel,Progress: number,Transparency: number,Color: C
         final = Color;
     end
     Letter.TextColor3 = LerpColor(RainbowColors[Current] or Color,final, prog)
-    if Initial then
-        Letter.TextTransparency = 0;
-    end;
 end

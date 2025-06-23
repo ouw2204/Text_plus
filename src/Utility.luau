@@ -33,19 +33,57 @@ end
 local function tonumbfunc(value: string)
     return tonumber(value)
 end
-local SpecialCompilers = {
+local function smartSplit(str, delimiter)
+    local result = {}
+    local current = ""
+    local depth = 0
+    local count = 0;
+    for i = 1, #str do
+        local char = string.sub(str, i, i)
+        
+        if char == "{" then
+            depth = depth + 1
+            current = current .. char
+        elseif char == "}" then
+            depth = depth - 1
+            current = current .. char
+        elseif char == delimiter and depth == 0 then
+            -- Only split when we're not inside brackets
+            local trimmed = current:match("^%s*(.-)%s*$") -- trim whitespace
+            if #trimmed > 0 then
+                table.insert(result, trimmed)
+                count += 1
+            end
+            current = ""
+        else
+            current = current .. char
+        end
+    end
+    
+    -- Add the last part
+    local trimmed = current:match("^%s*(.-)%s*$")
+    if #trimmed > 0 then
+        table.insert(result, trimmed)
+        count += 1;
+    end
+    depth = nil;
+    current = nil;
+    return result,count
+end
+
+local SpecialCompilers; SpecialCompilers = {
     ["color"] = function(value: string)
         if value == nil then return end;
-        if string.find(value,"%<") == nil then
+        if string.find(value,"%{") == nil then
             if false then
-                --< id
+                --{ id
                 --> id
             else
                 --hex
                 return Color3.fromHex(value)
             end
         else
-            local mode, r, g, b = string.match(value, "^(.-)<%s*([+-]?%d*%.?%d+)%s*,%s*([+-]?%d*%.?%d+)%s*,%s*([+-]?%d*%.?%d+)%s*>")
+            local mode, r, g, b = string.match(value, "^(.-){%s*([+-]?%d*%.?%d+)%s*,%s*([+-]?%d*%.?%d+)%s*,%s*([+-]?%d*%.?%d+)%s*}")
             if not mode then
                 -- Try without brackets: rgb 255,1,3 or rgb255,1,3
                 mode, r, g, b = string.match(value, "^(%a+)%s*([+-]?%d*%.?%d+)%s*,%s*([+-]?%d*%.?%d+)%s*,%s*([+-]?%d*%.?%d+)")
@@ -72,32 +110,77 @@ local SpecialCompilers = {
         end;
         return nil
     end,
+    Looped = function(Content)
+        return string.lower(Content) == "true"
+    end,
+    Repeat = tonumbfunc;
+    DelayTime = tonumbfunc;
     ["transparency"] = tonumbfunc;
     ["chunks"] = tonumbfunc;
+    ["amplitude"] = tonumbfunc;
     ["fontface"] = function(value: string)
         if value == nil then return end;
-        if string.find(value,"%<") == nil then
+        if string.find(value,"%{") == nil then
             --id
         else
-            -- Pattern for text values in brackets: fromName<font,style,weight>
-            local mode, x, y, z = string.match(value, "^(.-)<%s*([^,]+)%s*,%s*([^,]+)%s*,%s*([^,>]+)%s*>")
-            if not mode then
-                -- Try without brackets for numeric values
-                mode, x, y, z = string.match(value, "^(%a+)%s*([+-]?%d*%.?%d+)%s*,%s*([+-]?%d*%.?%d+)%s*,%s*([+-]?%d*%.?%d+)")
-            end
-            if mode ~= nil and y ~= nil and z ~= nil then
-                print(x,"|",y,"|",z,"|",string.gsub(x," ","_"))
-                return Font[mode](string.gsub(x," ","_"),Enum.FontWeight[y],Enum.FontStyle[z])
+            -- Pattern for text values in brackets: fromName{font,style,weight}
+            local mode, x, y, z = string.match(value, "^(.-){%s*([^,]+)%s*,%s*([^,]+)%s*,%s*([^,}]+)%s*}")
+            if x ~= nil and y ~= nil and z ~= nil then
+                mode = string.match(string.lower(mode),"(%w+)");
+                if mode == "name" then
+                    return Font.fromName(string.gsub(x," ","_"),Enum.FontWeight[y],Enum.FontStyle[z])
+                elseif mode == "id" then
+                    return Font.fromId(string.gsub(x," ","_"),Enum.FontWeight[y],Enum.FontStyle[z])
+                elseif mode == nil then
+                    return Font.new(string.gsub(x," ","_"),Enum.FontWeight[y],Enum.FontStyle[z])
+                end
             end
         end
         
         return nil
+    end;
+    ["style"] = function(value)
+        if value == nil then return end;
+        if string.find(value,"%{") == nil then
+            if false then
+                --id
+            else
+                return value;
+            end
+        else
+            value = string.match(value, "{(.+)}")
+            local result
+            if string.find(value,"%{") then
+                local count
+                result,count = smartSplit(value,",")
+                for x = 1,count do
+                    if string.find(result[x],"%{") then
+                        local res = string.split(string.match(result[x], "{(.+)}"))
+                        for y = #res,1,-1 do
+                            if string.find(res[y],"%=") ~= nil then
+                                local key, val = string.match(res[y], "^%s*([^=]-)%s*=%s*(.-)%s*$")
+                                res[key] = (SpecialCompilers[key] and SpecialCompilers[key](val)) or val;
+                            else
+                                res["Style"] = string.match(res[y], "^%s*(.-)%s*$");
+                                
+                            end
+                            res[y] = nil;
+                        end
+                        result[x] = res
+                    end
+                end
+            else
+                result = string.split(value,",")
+            end
+            return result
+        end
     end
 }
+
+
 function module.Phase2(input: string?): {[any]: any}?
     if input == nil then return end;
     local result = {}
-    print("Phase2")
     -- Method 1: Handle values that might contain commas in brackets
     -- This pattern matches key=value where value can contain brackets with commas
     local remaining = input
@@ -107,11 +190,12 @@ function module.Phase2(input: string?): {[any]: any}?
         if not key then break end
         
         local value, nextPart
-        -- Check if value starts with a bracket (like rgb<...>)
-        if string.match(afterKey, "^%s*[^<]*<") then
-            value, nextPart = string.match(afterKey, "^%s*([^<]*<[^>]*>)%s*,?(.*)")
+        -- Check if value starts with a bracket (like rgb{...})
+       local brackets = string.match(afterKey, "^%s*([^{]*%b{})")
+        if brackets then
+            value = brackets
+            nextPart = string.match(afterKey, "^%s*" .. string.gsub(brackets, "([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1") .. "%s*,?(.*)")
         else
-            -- Regular value (no brackets)
             value, nextPart = string.match(afterKey, "^%s*([^,]*)%s*,?(.*)")
         end
         

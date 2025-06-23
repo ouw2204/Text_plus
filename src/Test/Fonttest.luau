@@ -12,7 +12,7 @@ return function (Target: GuiBase)
         BackgroundColor3 = Color3.fromRGB(0,0,0);
         function(Entity: GuiBase)
             -- do stuff
-            local Text = TextPlus.New("Hello world this is a font [test.](fontface=fromName<Accanthis ADF Std,Regular,Italic>)",{
+            local Text = TextPlus.New("Hello [world](font=Arcade) this is [a font](fontface = <rbxasset://fonts/families/AmaticSC.json,Regular,Italic>) [test.](fontface=name<Accanthis ADF Std,Regular,Italic>)",{
                 Size = 20; 
                 XAlignment = Enum.TextXAlignment.Center;
                 YAlignment = Enum.TextYAlignment.Center;
