@@ -12,13 +12,16 @@ return function (Target: GuiBase)
         BackgroundColor3 = Color3.fromRGB(0,0,0);
         function(Entity: GuiBase)
             -- do stuff
-            local Text = TextPlus.New("First style: [Rainbow](style={{Rainbow,Reverse=true,Repeat = 1},Shrink,{Drop,Reverse = true,DelayTime = .25}},Amplitude = 2)",{
+            local Text = TextPlus.New("First style: [Rainbow](style={{Rainbow,Reverse=true,Repeat = 1},Shrink,{Rise,Reverse = true,Amplitude = 3,StepFactor = 2,DelayTime = .25}},Amplitude = 2,Chunks=3)",{
                 --Size = 20;
                 XAlignment = Enum.TextXAlignment.Center;
                 YAlignment = Enum.TextYAlignment.Center;
                 Scale = .5;
             });
             Text:Play(Entity)
+            --[[task.delay(.25,function()
+                Text:Print(Entity);
+            end)]]
         end
     }
 

@@ -20,14 +20,15 @@ local StyleFactors = {
     Fade = 1.8;
     Pop = 1.5;
 };
-function updateSingle(Style: string,Letter: TextLabel,Step: number,Transparency: number,Color: Color3,HasUpdate: boolean,Index: number,Started: number,StepFactor: number,Size: UDim2,Position: UDim2,Amplitude: number?,StyleTable: {Repeat: number?, Looped: boolean?,Reverse: boolean?, DelayTime: number?}?)
+local repeatword = "repeat";
+function updateSingle(Style: string,Letter: TextLabel,Step: number,Transparency: number,Color: Color3,HasUpdate: boolean,Index: number,Started: number,StepFactor: number,Size: UDim2,Position: UDim2,Amplitude: number?,StyleTable: {["repeat"]: number?,stepfactor: number?, looped: boolean?,reverse: boolean?, delaytime: number?,amplitude: number?}?)
     if Styles[Style] == nil then
         return true;
     end
     local finalprog = 1
     if HasUpdate then
         local stylefactor = (StyleFactors[Style] or 1.6) * 10
-        local delayTime = (StyleTable and StyleTable.DelayTime) or 0
+        local delayTime = (StyleTable and StyleTable.delaytime) or 0
         local elapsedTime = (os.clock() - Started) - (Step*(Index-1))
         
         -- Don't run animation during delay period
@@ -38,7 +39,7 @@ function updateSingle(Style: string,Letter: TextLabel,Step: number,Transparency:
             return nil  -- Exit early, don't run animation yet
         end
         
-        finalprog = (elapsedTime - delayTime) / ( Step*stylefactor*(StepFactor or 1) )
+        finalprog = (elapsedTime - delayTime) / ( Step*stylefactor*((StyleTable ~= nil and StyleTable.stepfactor) or StepFactor or 1) )
         elapsedTime = nil;
         delayTime = nil;
         stylefactor = nil;
@@ -49,11 +50,12 @@ function updateSingle(Style: string,Letter: TextLabel,Step: number,Transparency:
     local Reversing = false  -- Track if we're in reverse phase
     
     if StyleTable ~= nil then
-        if StyleTable.Looped or (StyleTable.Repeat ~= nil and StyleTable.Repeat < 0) then
+        Amplitude = StyleTable.amplitude or Amplitude
+        if StyleTable.looped or (StyleTable[repeatword] ~= nil and StyleTable[repeatword] < 0) then
             local cycleProg = finalprog % 1
             
             -- Handle reverse animation (ping-pong effect)
-            if StyleTable.Reverse then
+            if StyleTable.reverse then
                 local cycleNumber = math.floor(finalprog)
                 -- Even cycles: normal (0->1), Odd cycles: reverse (1->0)
                 if cycleNumber % 2 == 1 then
@@ -68,13 +70,13 @@ function updateSingle(Style: string,Letter: TextLabel,Step: number,Transparency:
                 Reversing = false
             end
             
-        elseif StyleTable.Repeat ~= nil then
+        elseif StyleTable[repeatword] ~= nil then
             local repeatCycle = math.floor(finalprog)
             local cycleProg = finalprog % 1
 
-            if StyleTable.Reverse then
+            if StyleTable.reverse then
                 -- With reverse, each "repeat" consists of 2 half-cycles (forward + backward)
-                local totalHalfCycles = StyleTable.Repeat * 2
+                local totalHalfCycles = StyleTable[repeatword] * 2
                 local currentHalfCycle = math.floor(finalprog * 2)
                 
                 if currentHalfCycle >= totalHalfCycles then
@@ -93,7 +95,7 @@ function updateSingle(Style: string,Letter: TextLabel,Step: number,Transparency:
                 end
             else
                 -- Normal repeat behavior without reverse
-                if repeatCycle >= StyleTable.Repeat then
+                if repeatCycle >= StyleTable[repeatword] then
                     shouldComplete = true
                 else
                     clamped = cycleProg
@@ -101,7 +103,7 @@ function updateSingle(Style: string,Letter: TextLabel,Step: number,Transparency:
                 end
             end
             
-        elseif StyleTable.Reverse then
+        elseif StyleTable.reverse then
             -- Handle reverse without looping or repeating (single ping-pong cycle)
             if finalprog <= 1 then
                 -- First half: 0->1 (progress 0 to 0.5 maps to 0->1)
@@ -127,7 +129,7 @@ function updateSingle(Style: string,Letter: TextLabel,Step: number,Transparency:
         return true
     end
 
-    if StyleTable == nil or (StyleTable.Repeat == nil and StyleTable.Looped == nil and StyleTable.Reverse == nil) then
+    if StyleTable == nil or (StyleTable[repeatword] == nil and StyleTable.looped == nil and StyleTable.reverse == nil) then
         if clamped >= 1 then
             return true;
         end
@@ -136,12 +138,13 @@ function updateSingle(Style: string,Letter: TextLabel,Step: number,Transparency:
     return nil;
 end
 function module:Destroy()
-    setmetatable(self,nil)
-end
-function module:Completed()
     local f = tf(self.__Content.Animations,self)
     if f ~= nil then
+        if self.__Content.CurrentAnimation == self then
+            self.__Content.CurrentAnimation = nil;
+        end
         tr(self.__Content.Animations,f)
+        self.__Content = nil;
     end
     for i = self.Index,1,-1 do
         local Letter = self.Letters[i]
@@ -170,9 +173,27 @@ function module:Completed()
         tc(self.DefaultPosition)
         self.DefaultPosition = nil;
     end
+    if self.Settings ~= nil then
+        tc(self.Settings)
+        self.Settings = nil;
+    end
     self.Word.TextColor3 = self.color;
     self.Word.TextTransparency = self.transparency;
-    self:Destroy();
+    self.Amplitude = nil;
+    self.HasUpdate = nil;
+    self.Index = nil;
+    self.Progress = nil;
+    self.Started = nil;
+    self.StepFactor = nil;
+    self.Word = nil;
+    self.WordLength = nil;
+    self.color = nil;
+    self.step = nil;
+    self.transparency = nil;
+    self.Style = nil;
+    self.StyleIsTable = nil;
+    setmetatable(self,nil)
+    tc(self)
 end
 local tableType = "table"
 function module:Update()
@@ -209,7 +230,7 @@ function module:Update()
             end
         end
         if self.Progress >= self.WordLength then
-            self:Completed()
+            self:Destroy()
             break
         end
     end
@@ -269,14 +290,15 @@ function module:AddLetter(Letter: TextLabel)
     end
     
     if self.Progress >= self.WordLength then
-        self:Completed()
+        self:Destroy()
     end
 end
 return function(Content: Types.PlayableType,Word: TextLabel,Params: {[string]: number?}?, Settings: Types.DefaultSettingsType): Types.AnimatorType
+    print("init")
     local tab = {
         __Content = Content;
         Word = Word;
-        WordLength = #Word.Text;
+        WordLength = #Word.Text/ (Content.Chunks or Content.Settings.Chunks or 1);
         Index = 0;
         Progress = 0;
         Style = (Params ~= nil and Params.style) or Settings.Style;
@@ -301,5 +323,6 @@ return function(Content: Types.PlayableType,Word: TextLabel,Params: {[string]: n
     tab.step = (Params ~= nil and Params.step) or Settings.Step or Defaults.Step
     tab.transparency = (Params ~= nil and Params.transparency) or Settings.Transparency or Defaults.Transparency
     tab.color = (Params ~= nil and Params.color) or Settings.Color or Defaults.Color
+    print("ret")
     return setmetatable(tab,module) :: any
 end

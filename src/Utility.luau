@@ -70,7 +70,9 @@ local function smartSplit(str, delimiter)
     current = nil;
     return result,count
 end
-
+local booleanfunc = function(Content)
+    return string.lower(Content) == "true"
+end;
 local SpecialCompilers; SpecialCompilers = {
     ["color"] = function(value: string)
         if value == nil then return end;
@@ -110,13 +112,13 @@ local SpecialCompilers; SpecialCompilers = {
         end;
         return nil
     end,
-    Looped = function(Content)
-        return string.lower(Content) == "true"
-    end,
-    Repeat = tonumbfunc;
-    DelayTime = tonumbfunc;
+    looped = booleanfunc;
+    reverse = booleanfunc;
+    ["repeat"] = tonumbfunc;
+    delaytime = tonumbfunc;
     ["transparency"] = tonumbfunc;
     ["chunks"] = tonumbfunc;
+    ["textsize"] = tonumbfunc;
     ["amplitude"] = tonumbfunc;
     ["fontface"] = function(value: string)
         if value == nil then return end;
@@ -159,6 +161,7 @@ local SpecialCompilers; SpecialCompilers = {
                         for y = #res,1,-1 do
                             if string.find(res[y],"%=") ~= nil then
                                 local key, val = string.match(res[y], "^%s*([^=]-)%s*=%s*(.-)%s*$")
+                                key = string.lower(key)
                                 res[key] = (SpecialCompilers[key] and SpecialCompilers[key](val)) or val;
                             else
                                 res["Style"] = string.match(res[y], "^%s*(.-)%s*$");

@@ -8,15 +8,22 @@ local Utility = require(script.Parent.Parent.Utility);
 
 local tins = table.insert
 
+local min = math.min
 return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2)
+    if Content.LastRunSuccessful == false then
+        warn(`Something went wrong while running Text+ so the programmed was terminated.`)
+        Content:Destroy()
+        return;
+    end
+    Content.LastRunSuccessful = false;
     if (Content.Timer == nil or Content.Timer+WaitTime > (Content.CurrentStep or Content.Settings.Step or Defaults.Step)/(Content.CurrentSpeed or Content.Settings.Speed or Defaults.Speed)) and Content.__Broke == nil then
         local TextSize = Content.Settings.Size;
         if Content.Settings.Scaled then
-            TextSize = math.min(math.min(parentAbs.Y,100)* (Content.CurrentScale or Content.Settings.Scale or 1),100)
+            TextSize = min(min(parentAbs.Y,100)* (Content.CurrentScale or Content.Settings.Scale or 1),100)
         end
         
         local Cont = Content.Sequence[Content.CurrentIndex];
-        if Cont == nil then Content:Break(); return end;
+        if Cont == nil then Content:Break(); Content.LastRunSuccessful = true return end;
         local IncreaseCurentIndex = false;
         local IncreaseCurentIndexPosition = false;
         local IncreaseCurrentCharacterPosition = false;
@@ -34,7 +41,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
         --< validators
         if Content.Count == nil or Content.Count == 0 then
             if Content.CurrentIndex >= Content.SequenceCount then
-                Content:Break(); return
+                Content:Break(); Content.LastRunSuccessful = true; Content.LastRunSuccessful = true return
             else
                 IncreaseCurentIndex = true;
                 if Content.List ~= nil then
@@ -78,7 +85,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                                 --> image
                             else
                                 --< functions
-                                local id = string.sub(Content.Word,math.min(2,Content.WordLength),Content.WordLength)
+                                local id = string.sub(Content.Word,min(2,Content.WordLength),Content.WordLength)
                                 if id ~= nil then
                                     if Content.Functions ~= nil then
                                         local fetched = Content.Functions[id]();
@@ -89,16 +96,18 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                                         end
                                         id = fetched or id
                                     end
+                                    print("Set word")
                                     Content.Word = id;
                                 end
                                 --> functions
                             end
                         end
                         --> ids
-                        
+                        print(Pass," is pass")
                         if Pass then
+                            print("ye pass")
                             --< word instance creation
-                            Content.CurrentCharacterPosition = (Content.Chunks or 1);
+                            Content.CurrentCharacterPosition = min((Content.Chunks or Content.Settings.Chunks or 1),Content.WordLength);
                             Content.PrevCharX = 0;
                             local WordInstance = Instance.new("TextLabel");
                             WordInstance.Name = Content.Word;
@@ -130,13 +139,17 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                                 Content.Word = nilset;
                                 Content:Break();
                                 Content.CurrentAnimation = nil;
+                                print("set nil 3")
+                                Content.LastRunSuccessful = true
                                 return
                             end
                             if string.match(Content.Word,"%s+") == Content.Word then
                                 Content.Word = nilset;
                                 Content.CurrentAnimation = nil;
+                                print("set nil 2")
                                 IncreaseCurentIndexPosition = true;
                             else
+                                print("2tang")
                                 local Animation = AnimatorClass(Content, Content.WordInstance,Content.Params,Content.Settings);
                                 tins(Content.Animations,Animation);
                                 Content.CurrentAnimation = Animation;
@@ -145,15 +158,17 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                         --> word instance creation
                     end
                     if Content.Word ~= nil then
+                        print(Content.Word)
                         --< letters
                         if Content.CurrentCharacterPosition > Content.WordLength then
                             IncreaseCurentIndexPosition = true;
                             Content.Word = nilset;
                             Content.WordLength = nilset;
                             Content.CurrentCharTxt = nil;
-                            Content.CurrentCharacterPosition = (Content.Chunks or 1);
+                            Content.CurrentCharacterPosition = nil;
                             Content.PrevCharacterPosition = nil;
                             Content.CurrentAnimation = nil;
+                            print("set nil 1")
                         else
                             IncreaseCurrentCharacterPosition = true;
                             local String = string.sub(Content.Word,0,Content.CurrentCharacterPosition)
@@ -184,6 +199,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             Txt.Size = UDim2.fromScale(X,1);
                             Txt.Position = UDim2.fromScale(Content.PrevCharX/Content.WordInstance.AbsoluteSize.X + X/2,.5);
                             Content.PrevCharX = FullBounds;
+                            print(Content.Word," is word")
                             Content.CurrentAnimation:AddLetter(Txt)
                         end
                         --> letters
@@ -195,7 +211,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
         end
         --> validators
         if not IncreaseCurentIndex and not IncreaseCurentIndexPosition and not IncreaseCurrentCharacterPosition and not Pass then
-            Content:Break(); return
+            Content:Break(); Content.LastRunSuccessful = true return
         end
         if IncreaseCurentIndex then
             Content.CurrentIndex = (Content.CurrentIndex or 1)+1;
@@ -228,7 +244,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
         elseif IncreaseCurentIndexPosition then
             Content.CurrentIndexPosition = (Content.CurrentIndexPosition or 1)+1;
         elseif IncreaseCurrentCharacterPosition then
-            local Chunk = (Content.Chunks or 1)
+            local Chunk = (Content.Chunks or Content.Settings.Chunks or 1)
             Content.PrevCharacterPosition = Content.CurrentCharacterPosition
             if Content.CurrentCharacterPosition < Content.WordLength and Content.CurrentCharacterPosition+Chunk > Content.WordLength then
                 Content.CurrentCharacterPosition = Content.WordLength;
@@ -250,9 +266,8 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
             end
         end
     elseif Content.__DeleteWhenDone then
-        if Content.RenderStep ~= nil then
-            Content.RenderStep:Disconnect();
-            Content.RenderStep = nil;
-        end
+        Content:Destroy();
+        print("Delete ",Content)
     end
+    Content.LastRunSuccessful = true;
 end
