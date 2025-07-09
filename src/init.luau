@@ -1,7 +1,8 @@
 local Types = require(script.Types)
 local MainMetatable = require(script.Handler)
-local Decrypter = require(script.Utility)
-return {
+local Storage = require(script.Storage)
+local Styles = require(script.Animators.AnimatorClass.Styles)
+local mt = {
     New = function(Content: string,DefaultSettings: Types.DefaultSettingsType)
         if Content == nil then return end;
         if DefaultSettings == nil then DefaultSettings = {}:: Types.DefaultSettingsType end;
@@ -21,10 +22,36 @@ return {
         --> default properties
 
         Content = Content or "";
-        return setmetatable({
+        local Main = setmetatable({
             Animations = {};
-            Sequence = Decrypter.Phase1(Content);
+            RawContent = Content;
             Settings = DefaultSettings;
         },MainMetatable)
+
+        return Main
     end
-}:: Types.textPlusType
+}
+function  mt:RegisterGlobalId(Id: string,Content: any)
+    if Id == nil or Content == nil then 
+        --warn("Id or Function cannot be nil")
+        return
+    end
+    Storage.IdsStorage[Id] = Content;
+    return true
+end
+function  mt:UnRegisterGlobalId(Id: string)
+    if Id == nil then 
+        --warn("Id cannot be nil")
+        return
+    end
+    Storage.IdsStorage[Id] = nil;
+end
+function mt:RegisterStyle(Id: string,Function: (Letter: TextLabel,Progress: number,Transparency: number,Color: Color3,Size: UDim2,Position: UDim2,Amplitude: number?,Reversing: boolean?) -> ())
+    if Id == nil or Function == nil then return end;
+    Styles[Id] = Function;
+end
+function mt:UnRegisterStyle(Id: string)
+    if Id == nil then return end;
+    Styles[Id] = nil;
+end
+return mt :: Types.textPlusType

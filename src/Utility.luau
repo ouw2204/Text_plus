@@ -1,10 +1,14 @@
 local module = {};
+local Storage = require(script.Parent.Storage)
 local opposites = {
     ["%["] = "%]",
     ["%{"] = "%}",
     ["%("] = "%)",
     ["%<"] = "%>",
 }
+local ss = string.sub
+local sl = string.lower
+local tof = typeof
 function module.splitWordsAndSpaces(input: string): ({string},number)
 	local result = {}
     local i = 1
@@ -39,7 +43,7 @@ local function smartSplit(str, delimiter)
     local depth = 0
     local count = 0;
     for i = 1, #str do
-        local char = string.sub(str, i, i)
+        local char = ss(str, i, i)
         
         if char == "{" then
             depth = depth + 1
@@ -71,19 +75,13 @@ local function smartSplit(str, delimiter)
     return result,count
 end
 local booleanfunc = function(Content)
-    return string.lower(Content) == "true"
+    return sl(Content) == "true"
 end;
 local SpecialCompilers; SpecialCompilers = {
     ["color"] = function(value: string)
         if value == nil then return end;
         if string.find(value,"%{") == nil then
-            if false then
-                --{ id
-                --> id
-            else
-                --hex
-                return Color3.fromHex(value)
-            end
+            return Color3.fromHex(value)
         else
             local mode, r, g, b = string.match(value, "^(.-){%s*([+-]?%d*%.?%d+)%s*,%s*([+-]?%d*%.?%d+)%s*,%s*([+-]?%d*%.?%d+)%s*}")
             if not mode then
@@ -93,7 +91,7 @@ local SpecialCompilers; SpecialCompilers = {
             if mode == nil then return end;
             r = tonumber(r); g = tonumber(g); b = tonumber(b);
             if r == nil or g == nil or b == nil then return end;
-            mode = string.match(string.lower(mode),"(%w+)");
+            mode = string.match(sl(mode),"(%w+)");
             if mode == nil then
                 if r ~= nil and g ~= nil and b ~= nil then
                     return Color3.new(r,g,b)
@@ -122,13 +120,11 @@ local SpecialCompilers; SpecialCompilers = {
     ["amplitude"] = tonumbfunc;
     ["fontface"] = function(value: string)
         if value == nil then return end;
-        if string.find(value,"%{") == nil then
-            --id
-        else
+        if string.find(value,"%{") ~= nil then
             -- Pattern for text values in brackets: fromName{font,style,weight}
             local mode, x, y, z = string.match(value, "^(.-){%s*([^,]+)%s*,%s*([^,]+)%s*,%s*([^,}]+)%s*}")
             if x ~= nil and y ~= nil and z ~= nil then
-                mode = string.match(string.lower(mode),"(%w+)");
+                mode = string.match(sl(mode),"(%w+)");
                 if mode == "name" then
                     return Font.fromName(string.gsub(x," ","_"),Enum.FontWeight[y],Enum.FontStyle[z])
                 elseif mode == "id" then
@@ -141,15 +137,9 @@ local SpecialCompilers; SpecialCompilers = {
         
         return nil
     end;
-    ["style"] = function(value)
+    ["style"] = function(value,Content)
         if value == nil then return end;
-        if string.find(value,"%{") == nil then
-            if false then
-                --id
-            else
-                return value;
-            end
-        else
+        if string.find(value,"%{") ~= nil then
             value = string.match(value, "{(.+)}")
             local result
             if string.find(value,"%{") then
@@ -161,7 +151,7 @@ local SpecialCompilers; SpecialCompilers = {
                         for y = #res,1,-1 do
                             if string.find(res[y],"%=") ~= nil then
                                 local key, val = string.match(res[y], "^%s*([^=]-)%s*=%s*(.-)%s*$")
-                                key = string.lower(key)
+                                key = sl(key)
                                 res[key] = (SpecialCompilers[key] and SpecialCompilers[key](val)) or val;
                             else
                                 res["Style"] = string.match(res[y], "^%s*(.-)%s*$");
@@ -181,7 +171,7 @@ local SpecialCompilers; SpecialCompilers = {
 }
 
 
-function module.Phase2(input: string?): {[any]: any}?
+function module.Phase2(input: string?,Content: any): {[any]: any}?
     if input == nil then return end;
     local result = {}
     -- Method 1: Handle values that might contain commas in brackets
@@ -204,9 +194,14 @@ function module.Phase2(input: string?): {[any]: any}?
         
         if value then
             value = value:match("^%s*(.-)%s*$")
-            key = string.lower(key)
-            result[key] = (SpecialCompilers[key] ~= nil and SpecialCompilers[key](value)) or value
+            key = sl(key)
+            local valueLowered = sl(value)
+            local func = Storage.IdsStorage[valueLowered] or (Content.IdsStorage ~= nil and Content.IdsStorage[valueLowered]) or nil
+            result[key] = (func ~= nil and ((tof(func) == "function" and func(key)) or func) ) or (SpecialCompilers[key] ~= nil and SpecialCompilers[key](value)) or value
             remaining = nextPart
+            valueLowered = nil;
+            key = nil;
+            func = nil;
         else
             break
         end
@@ -214,7 +209,7 @@ function module.Phase2(input: string?): {[any]: any}?
     return result
 end
 
-module.Phase1 = function(input: any): {[any]: any}?
+module.Phase1 = function(input: any,Content: any): {[any]: any}?
     if input == nil then return end
     local result = {}
     local index = 1
@@ -305,7 +300,7 @@ module.Phase1 = function(input: any): {[any]: any}?
                 endPos = endPos,
                 type = "with_params",
                 text = textPart,
-                params = module.Phase2(params),  -- Call Phase2 HERE instead
+                params = module.Phase2(params,Content),  -- Call Phase2 HERE instead
                 between = between
             })
         end
@@ -373,7 +368,6 @@ module.Phase1 = function(input: any): {[any]: any}?
             end
         end
     end
-    
     return result
 end
 module.Phase1_by_ouw = function(input: any): {[any]: any}?
@@ -388,28 +382,28 @@ module.Phase1_by_ouw = function(input: any): {[any]: any}?
        local k = string.find(input,opposite)
        if k ~= nil then
         if currentChar == "%[" then
-            local before = string.sub(input,0,math.max(0,j-1));
+            local before = ss(input,0,math.max(0,j-1));
             if before ~= nil and #before > 0 then
                 result[ChildCounter+1] = before;
                 ChildCounter = ChildCounter + 1;
             end
-            capturedContent = string.sub(input,j+1,k-1);
-            input = string.sub(input,k+1,#input);
+            capturedContent = ss(input,j+1,k-1);
+            input = ss(input,k+1,#input);
             currentChar = "%(";
             j = string.find(input,currentChar);
         elseif currentChar == "%(" then
-            local before = string.sub(input,0,math.max(0,j-1));
+            local before = ss(input,0,math.max(0,j-1));
             if before ~= nil and #before > 0 then
                 result[ChildCounter+1] = before;
                 ChildCounter = ChildCounter + 1;
             end
-            local Params = string.sub(input,j+1,k-1);
+            local Params = ss(input,j+1,k-1);
             if capturedContent ~= nil and Params ~= nil and #Params > 0 then
                 local tab = {Text = capturedContent,Params = module.Phase2(Params)};
                 result[ChildCounter+1] = tab;
                 ChildCounter = ChildCounter + 1;
             end
-            input = string.sub(input,k+1,#input);
+            input = ss(input,k+1,#input);
             currentChar = "%[";
             j = string.find(input,currentChar);
         end

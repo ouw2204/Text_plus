@@ -1,8 +1,8 @@
 [package]
-name = "prophetouw/textplus"
-version = "0.1.0"
+name = "prophetouw/faye"
+version = "1.4.16"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 
 [dependencies]
-faye = "prophetouw/faye@1.4.16"
+Signal = "prophetouw/simplesignal@1.0.14"

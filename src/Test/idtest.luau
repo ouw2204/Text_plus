@@ -1,6 +1,6 @@
 local Threader = require(script.Parent.Parent.Packages.faye)
 local TextPlus = require(script.Parent.Parent)
-local Types = require(script.Parent.Parent.Packages._Index["prophetouw_faye@1.4.8"].faye.Types)
+local Types = require(script.Parent.Parent.Packages._Index["prophetouw_faye@1.4.16"].faye.Types)
 return function (Target: GuiBase)
     local Thread = Threader();
     Thread:Create "Frame" {
@@ -12,13 +12,20 @@ return function (Target: GuiBase)
         BackgroundColor3 = Color3.fromRGB(0,0,0);
         function(Entity: GuiBase)
             -- do stuff
-            local Text = TextPlus.New("Hello world this [#name] is an image...",{
-                Size = 20;
+            local Text = TextPlus.New("Hello world this [#name](Style=tteststyle) is an test id...",{
                 XAlignment = Enum.TextXAlignment.Center;
                 YAlignment = Enum.TextYAlignment.Center;
                 Scaled = true;
                 Scale = .5;
             });
+            Text:RegisterLocalId("name", function()
+                return "test - "..tostring(math.random(1,999))
+            end);
+            Text:RegisterLocalId("tteststyle","NewTestStyle")
+            TextPlus:RegisterStyle("NewTestStyle", function(Letter: TextLabel, Progress: number, Transparency: number, Color: Color3, Size: UDim2, Position: UDim2, Amplitude: number?, Reversing: boolean?)
+                Letter.TextTransparency = 1-Progress;
+            end);
+            TextPlus:UnRegisterStyle("NewTestStyle");
             Text:Play(Entity)
         end
     }

@@ -2,10 +2,16 @@ local module = {}
 
 module.__index = module;
 local RunService = game:GetService("RunService");
+local Storage = require(script.Parent.Storage)
 local AnimatorManager = require(script.Parent.Animators.AnimatorManager);
+local Utility = require(script.Parent.Utility)
 local tof = typeof
 function module:Play(ParentFrame: Frame)
     self.__playing = true;
+    if self.RawContent ~= nil and self.Sequence == nil then
+        self.Sequence = Utility.Phase1(self.RawContent,self);
+        self.RawContent = nil;
+    end
     if self.RenderStep ~= nil then
         self.RenderStep:Disconnect();
         self.RenderStep = nil;
@@ -65,6 +71,15 @@ function module:Play(ParentFrame: Frame)
     --> 
    
 end
+function module:GetIdValue(Id: string)
+    if Id == nil then return nil end;
+    if Storage.IdsStorage[Id] ~= nil then
+        return Storage.IdsStorage[Id](self);
+    elseif self.IdsStorage ~= nil and self.IdsStorage[Id] ~= nil then
+        return (tof(self.IdsStorage[Id]) == "function" and self.IdsStorage[Id]()) or self.IdsStorage[Id];
+    end
+    return nil;
+end
 function module:Stop()
     self:Break(true)
     if self.Animations ~= nil then
@@ -98,7 +113,6 @@ function module:Stop()
     self.Animations = nil;
 end
 function module:Destroy()
-    print("destroyed")
     self:Stop();
     self.Frame = nil;
     self.ListObject = nil;
@@ -110,11 +124,16 @@ function module:Destroy()
     for i,v in pairs(self.Settings) do
         self.Settings[i] = nil;
     end
+    if self.IdsStorage ~= nil then
+        for i,v in pairs(self.IdsStorage) do
+            self.IdsStorage[i] = nil;
+        end
+        self.IdsStorage = nil;
+    end
     self.Settings = nil;
     setmetatable(self,nil)
 end
 function module:Break(Strict: boolean)
-    print("broke")
     self.__Broke = true;
     if self.Animations == nil or #self.Animations == 0 or Strict then
         if self.RenderStep ~= nil then
@@ -125,6 +144,23 @@ function module:Break(Strict: boolean)
         self.__DeleteWhenDone = true;
     end
    self.__playing = nil;
+end
+function  module:RegisterLocalId(Id: string,Content: any)
+    if self.IdsStorage == nil then
+        self.IdsStorage = {}
+    end
+    if Id == nil or Content == nil then 
+        return
+    end
+    self.IdsStorage[Id] = Content;
+    return true
+end
+function  module:UnRegisterLocalId(Id: string)
+    if self.IdsStorage == nil then return end;
+    if Id == nil then 
+        return
+    end
+    self.IdsStorage[Id] = nil;
 end
 function module:Print(ParentFrame: Frame)
     if ParentFrame == nil then return end;
