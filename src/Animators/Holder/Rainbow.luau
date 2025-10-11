@@ -1,4 +1,4 @@
-local Types = require(script.Parent.Parent.Parent.Types)
+local Types = require(script.Parent.Parent.Parent.TextPlusTypes)
 local RainbowColors = {
     [1] = Color3.fromRGB(255,0,0);
     [2] = Color3.fromRGB(255,165,0);

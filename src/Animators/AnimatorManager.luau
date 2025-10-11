@@ -1,17 +1,30 @@
 local module = {}
 module.__index = module;
-local Types = require(script.Parent.Parent.Types)
+local Types = require(script.Parent.Parent.TextPlusTypes)
 local Defaults = require(script.Parent.Defaults)
 local nilset = nil;
 local AnimatorClass = require(script.Parent.AnimatorClass);
-local Utility = require(script.Parent.Parent.Utility);
+local Utility = require(script.Parent.Parent.TextPlusUtility);
 
 local tins = table.insert
 local ss = string.sub
 local min = math.min
+local tof = typeof
+local tabletxt = "table"
+local DefaultX = Enum.TextXAlignment.Left;
+local DefaultY = Enum.TextYAlignment.Top;
+local ts = tostring
+function Terminate(Content: Types.PlayableType)
+    Content.__Broke = true;
+    if Content.Animations == nil or #Content.Animations == 0 then
+        Content:Destroy()
+    else
+        Content.__DeleteWhenDone = true;
+    end
+end
 return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2)
-    if Content.LastRunSuccessful == false then
-        warn(`Something went wrong while running Text+ so the programmed was terminated.`)
+    if (Content.LastRunSuccessful == false and Content.__Broke == nil) or Content == nil or Content.Frame == nil or Content.Frame.Parent == nil then
+        --warn(`Something went wrong while running Text+ so the programmed was terminated.`)
         Content:Destroy()
         return;
     end
@@ -23,14 +36,25 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
         end
         
         local Cont = Content.Sequence[Content.CurrentIndex];
-        if Cont == nil then Content:Break(); Content.LastRunSuccessful = true return end;
+        if Cont == nil then Terminate(Content) return end;
         local IncreaseCurentIndex = false;
         local IncreaseCurentIndexPosition = false;
         local IncreaseCurrentCharacterPosition = false;
         local Pass = false;
         if Content.List == nil then
             local Txt = Content.Sequence[Content.CurrentIndex];
-            if typeof(Txt) == "table" then
+            if tof(Txt) == tabletxt then
+                if Txt.Params then
+                    Content.CurrentStep = Txt.Params.step;
+                    Content.Chunks = Txt.Params.chunks;
+                    Content.CurrentScale = Txt.Params.scale
+                    Content.CurrentColor = Txt.Params.color;
+                    Content.CurrentTransparency = Txt.Params.transparency
+                    Content.CurrentSpeed = Txt.Params.speed
+                    Content.CurrentAmplitude = Txt.Params.amplitude
+                    Content.CurrentFontFace = Txt.Params.fontface
+                    Content.CurrentFont = Txt.Params.font;
+                end;
                 Txt = Txt.Text;
             end
             local List,Count = Utility.splitWordsAndSpaces(Txt);
@@ -41,7 +65,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
         --< validators
         if Content.Count == nil or Content.Count == 0 then
             if Content.CurrentIndex >= Content.SequenceCount then
-                Content:Break(); Content.LastRunSuccessful = true; Content.LastRunSuccessful = true return
+                Terminate(Content) return
             else
                 IncreaseCurentIndex = true;
                 if Content.List ~= nil then
@@ -87,7 +111,8 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                                 --< functions
                                 local id = ss(Content.Word,min(2,Content.WordLength),Content.WordLength)
                                 if id ~= nil then
-                                    local newWord = Content:GetIdValue(id) or id;
+                                    local fetched = Content:GetIdValue(id)
+                                    local newWord = (fetched ~= nil and ts(fetched)) or id;
                                     Content.Word = newWord;
                                     Content.WordLength = #Content.Word;
                                     
@@ -109,8 +134,8 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             WordInstance.TextTransparency = 1;
                             WordInstance.TextSize = TextSize;
                             WordInstance.Text = Content.Word;
-                            WordInstance.TextXAlignment = Content.Settings.XAlignment or Enum.TextXAlignment.Left;
-                            WordInstance.TextYAlignment = Content.Settings.YAlignment or Enum.TextYAlignment.Top;
+                            WordInstance.TextXAlignment = Content.Settings.XAlignment or DefaultX;
+                            WordInstance.TextYAlignment = Content.Settings.YAlignment or DefaultY;
                             WordInstance.BackgroundTransparency = 1;
                             if Content.Settings.FontFace ~= nil or Content.CurrentFontFace ~= nil then
                                 WordInstance.FontFace = Content.CurrentFontFace or Content.Settings.FontFace;
@@ -127,13 +152,12 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             end
                             Content.WordInstance = WordInstance;
                             local ContentSize = Content.ListObject.AbsoluteContentSize;
-                            if not Content.Settings.Overfill and (ContentSize.X > parentAbs.X or ContentSize.Y > parentAbs.Y) then
+                            if not Content.Settings.Overfill and (--[[ContentSize.X > parentAbs.X or ]]ContentSize.Y > parentAbs.Y) then
                                 WordInstance.Parent = nil;
                                 WordInstance:Destroy();
                                 Content.Word = nilset;
-                                Content:Break();
+                                Terminate(Content);
                                 Content.CurrentAnimation = nil;
-                                Content.LastRunSuccessful = true
                                 return
                             end
                             if string.match(Content.Word,"%s+") == Content.Word then
@@ -169,7 +193,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             Txt.TextTransparency = 1;
                             Txt.Parent = Content.WordInstance;
                             Txt.TextSize = TextSize;
-                            Txt.TextScaled = true;
+                            --Txt.TextScaled = true;
                             Txt.AnchorPoint = Vector2.new(.5,.5);
                             Txt.TextXAlignment = Enum.TextXAlignment.Center;
                             Txt.TextYAlignment = Enum.TextYAlignment.Center;
@@ -179,15 +203,15 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             else
                                 Txt.Font = Content.CurrentFont or Content.Settings.Font or Enum.Font.SourceSans;
                             end
-                            Txt.Text = String;
-                            local FullBounds = Txt.TextBounds.X;
-                            local Difference = FullBounds-Content.PrevCharX;
+                            local ParentAbs = Content.WordInstance.AbsoluteSize
                             Txt.Text = Char;
-                            Txt.TextColor3 = Content.Settings.Color or Color3.new(1,1,1);
-                            local X = Difference/Content.WordInstance.AbsoluteSize.X
-                            Txt.Size = UDim2.fromScale(X,1);
-                            Txt.Position = UDim2.fromScale(Content.PrevCharX/Content.WordInstance.AbsoluteSize.X + X/2,.5);
-                            Content.PrevCharX = FullBounds;
+
+                            local X = (Txt.TextBounds.X)/ParentAbs.X
+                            Txt.Position = UDim2.fromScale( Content.PrevCharX + (X/2),.5);
+                            Content.PrevCharX += X;
+                            Txt.TextScaled = true;
+                            Txt.TextColor3 = Content.CurrentColor or Content.Settings.Color or Color3.new(1,1,1)
+                            Txt.Size = UDim2.fromScale(1,1);
 
                             if Content.CurrentAnimation ~= nil then
                                 Content.CurrentAnimation:AddLetter(Txt)
@@ -202,23 +226,22 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
         end
         --> validators
         if not IncreaseCurentIndex and not IncreaseCurentIndexPosition and not IncreaseCurrentCharacterPosition and not Pass then
-            Content:Break(); Content.LastRunSuccessful = true return
+            Terminate(Content); return
         end
         if IncreaseCurentIndex then
             Content.CurrentIndex = (Content.CurrentIndex or 1)+1;
             local fetch = Content.Sequence[Content.CurrentIndex];
-            if fetch ~= nil and fetch.Params ~= nil then
-                if fetch.Params then
-                    Content.CurrentStep = fetch.Params.step;
-                    Content.Chunks = fetch.Params.chunks;
-                    Content.CurrentScale = fetch.Params.scale
-                    Content.CurrentColor = fetch.Params.color;
-                    Content.CurrentTransparency = fetch.Params.transparency
-                    Content.CurrentSpeed = fetch.Params.speed
-                    Content.CurrentAmplitude = fetch.Params.amplitude
-                    Content.CurrentFontFace = fetch.Params.fontface
-                    Content.CurrentFont = fetch.Params.font;
-                end;
+            if fetch ~= nil and fetch.Params ~= nil and tof(fetch.Params) == tabletxt then
+                Content.CurrentStep = fetch.Params.step;
+                Content.Chunks = fetch.Params.chunks;
+                Content.CurrentScale = fetch.Params.scale
+                Content.CurrentColor = fetch.Params.color;
+                Content.CurrentTransparency = fetch.Params.transparency
+                Content.CurrentSpeed = fetch.Params.speed
+                Content.CurrentAmplitude = fetch.Params.amplitude
+                Content.CurrentFontFace = fetch.Params.fontface
+                Content.CurrentFont = fetch.Params.font;
+
                 Content.Params = fetch.Params;
             else
                 Content.CurrentFont = nil;

@@ -6,10 +6,13 @@
     "ReplicatedStorage": {
       "TextPlus": {
         "$path": "src",
+        "Test": {
+          "$path": "Test"
+        },
         "Packages": {
           "$path": "Packages"
         }
       }
     }
   }
-}     
+}  

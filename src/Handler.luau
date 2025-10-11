@@ -4,8 +4,10 @@ module.__index = module;
 local RunService = game:GetService("RunService");
 local Storage = require(script.Parent.Storage)
 local AnimatorManager = require(script.Parent.Animators.AnimatorManager);
-local Utility = require(script.Parent.Utility)
+local Utility = require(script.Parent.TextPlusUtility)
 local tof = typeof
+local functiontxt = "function"
+
 function module:Play(ParentFrame: Frame)
     self.__playing = true;
     if self.RawContent ~= nil and self.Sequence == nil then
@@ -21,10 +23,10 @@ function module:Play(ParentFrame: Frame)
     end
     local isBillBoard = ParentFrame:FindFirstAncestorOfClass("BillboardGui") ~= nil;
     local parentAbs = ParentFrame.AbsoluteSize
-    self.Frame = Instance.new"Frame";
+    self.Frame = (self.Settings.UseCanvas and Instance.new("CanvasGroup")) or Instance.new"Frame";
     self.Frame.Name = "TextPlusTextHolder";
-    self.Frame.Size = (isBillBoard and UDim2.fromScale(1,1)) or UDim2.fromOffset(parentAbs.X,parentAbs.Y);
-    self.Frame.BackgroundTransparency = .9;
+    self.Frame.Size =  UDim2.fromScale(1,1) --UDim2.fromOffset(parentAbs.X,parentAbs.Y); --(isBillBoard and UDim2.fromScale(1,1)) or UDim2.fromOffset(parentAbs.X,parentAbs.Y);
+    self.Frame.BackgroundTransparency = 1;
     self.Frame.Parent = ParentFrame;
     local List = Instance.new"UIListLayout"
     List.Parent = self.Frame;
@@ -61,27 +63,39 @@ function module:Play(ParentFrame: Frame)
         AnimatorManager(self,waitTime,parentAbs)
     end)
     --< max allowed testing time
-    task.delay(5,function()
+    --[[task.delay(5,function()
         if self.RenderStep ~= nil then
+            print("disconnected due to max time")
             self.RenderStep:Disconnect();
             self.RenderStep = nil;
         end
         --self.Frame:Clone().Parent = workspace
-    end)
+    end)]]
     --> 
-   
+   return self,self.Frame;
 end
 function module:GetIdValue(Id: string)
     if Id == nil then return nil end;
-    if Storage.IdsStorage[Id] ~= nil then
-        return Storage.IdsStorage[Id](self);
-    elseif self.IdsStorage ~= nil and self.IdsStorage[Id] ~= nil then
-        return (tof(self.IdsStorage[Id]) == "function" and self.IdsStorage[Id]()) or self.IdsStorage[Id];
+    local fetched = Storage.IdsStorage[Id]
+    if fetched ~= nil then
+        if tof(fetched) == functiontxt then
+            return fetched(self)
+        else
+            return fetched
+        end
     end
     return nil;
 end
 function module:Stop()
-    self:Break(true)
+    if self.RenderStep ~= nil then
+        self.RenderStep:Disconnect();
+        self.RenderStep = nil;
+    end
+    if self.SizeChangedConnection ~= nil then
+       self.SizeChangedConnection:Disconnect()
+       self.SizeChangedConnection = nil; 
+    end
+    self.__playing = nil;
     if self.Animations ~= nil then
         for i = #self.Animations,1,-1 do
             self.Animations[i]:Destroy();
@@ -107,12 +121,18 @@ function module:Stop()
     self.CurrentIndex = nil;
     self.CurrentIndexPosition = nil;
     self.WordInstance = nil;
-    self.__Broke = nil;
+    self.CurrentFontFace = nil;
     self.Timer = nil; 
+    self.__Broke = nil;
     self.__DeleteWhenDone = nil;
     self.Animations = nil;
 end
+local tc = table.clear
 function module:Destroy()
+    if self.__routine ~= nil then
+        coroutine.resume(self.__routine)
+        self.__routine = nil;
+    end
     self:Stop();
     self.Frame = nil;
     self.ListObject = nil;
@@ -121,46 +141,27 @@ function module:Destroy()
     end
     self.Sequence = nil;
     self.SequenceCount = nil;
-    for i,v in pairs(self.Settings) do
+    --[[for i,_ in pairs(self.Settings) do
         self.Settings[i] = nil;
-    end
-    if self.IdsStorage ~= nil then
-        for i,v in pairs(self.IdsStorage) do
-            self.IdsStorage[i] = nil;
-        end
-        self.IdsStorage = nil;
-    end
-    self.Settings = nil;
+    end]]
+    self.RawContent = nil;
+    --self.Settings = nil;
     setmetatable(self,nil)
+    tc(self)
 end
-function module:Break(Strict: boolean)
-    self.__Broke = true;
-    if self.Animations == nil or #self.Animations == 0 or Strict then
-        if self.RenderStep ~= nil then
-            self.RenderStep:Disconnect();
-            self.RenderStep = nil;
-        end
+
+local DefaultX = Enum.TextXAlignment.Left;
+local DefaultY = Enum.TextYAlignment.Top;
+local ss = string.sub
+local min = math.min
+function module:Wait()
+    if self.__playing then
+        self.__routine = coroutine.running()
+        coroutine.yield()
     else
-        self.__DeleteWhenDone = true;
+        warn("Text+ Writer is not currently running so the :Wait function can not be used.")
     end
-   self.__playing = nil;
-end
-function  module:RegisterLocalId(Id: string,Content: any)
-    if self.IdsStorage == nil then
-        self.IdsStorage = {}
-    end
-    if Id == nil or Content == nil then 
-        return
-    end
-    self.IdsStorage[Id] = Content;
-    return true
-end
-function  module:UnRegisterLocalId(Id: string)
-    if self.IdsStorage == nil then return end;
-    if Id == nil then 
-        return
-    end
-    self.IdsStorage[Id] = nil;
+    return self,self.Frame;
 end
 function module:Print(ParentFrame: Frame)
     if ParentFrame == nil then return end;
@@ -179,7 +180,7 @@ function module:Print(ParentFrame: Frame)
     self.Frame = Instance.new"Frame";
     self.Frame.Name = "TextPlusTextHolder";
     self.Frame.Size = (isBillBoard and UDim2.fromScale(1,1)) or UDim2.fromOffset(parentAbs.X,parentAbs.Y);
-    self.Frame.BackgroundTransparency = .9;
+    self.Frame.BackgroundTransparency = 1;
     self.Frame.Parent = ParentFrame;
     local List = Instance.new"UIListLayout"
     List.Parent = self.Frame;
@@ -208,19 +209,96 @@ function module:Print(ParentFrame: Frame)
     end;
     List.FillDirection = Enum.FillDirection.Horizontal;
     List.Wraps = self.Settings.Wrapped or false;
-
-    local TextSize = self.Settings.Size;
-    if self.Settings.Scaled then
-        TextSize = math.min(math.min(parentAbs.Y,100)* (self.CurrentScale or self.Settings.Scale or 1),100)
+    if self.RawContent ~= nil and self.Sequence == nil then
+        self.Sequence = Utility.Phase1(self.RawContent,self);
+        self.SequenceCount = #self.Sequence
+        self.RawContent = nil;
     end
     for i = 1,self.SequenceCount do
-        local Font,Color,Transparency,InnerTextSize = self.Settings.Font,self.Settings.Color,self.Settings.Transparency,TextSize;
+        local Color,Transparency,Scale,fontface,font,img = self.Settings.Color,self.Settings.Transparency,self.Settings.Scale or 1,self.Settings.FontFace,self.Settings.Font,nil;
+        local Text = nil;
         if tof(self.Sequence[i]) == "table" then
-            print(self.Sequence[i])
+            Text = self.Sequence[i].Text;
+            if self.Sequence[i].Params then
+                Color = self.Sequence[i].Params.color or Color;
+                Scale = self.Sequence[i].Params.scale or Scale;
+                Transparency = self.Sequence[i].Params.transparency or Transparency;
+                fontface = self.Sequence[i].Params.fontface or fontface;
+                font = self.Sequence[i].Params.font or font
+                img = self.Sequence[i].Params.img
+            end;
         else
-            
+           Text = self.Sequence[i];
         end
-    end
+        
+        if Text ~= nil then
+            local TextSize = self.Settings.Size;
+            if self.Settings.Scaled then
+                TextSize = math.min(math.min(parentAbs.Y,100)*Scale,100)
+            end
+            local WordsList,Count = Utility.splitWordsAndSpaces(Text)
+            for x = 1,Count do
+                local Word = WordsList[x]
+
+
+                --<ids
+                if (Word == "#" or ss(Word,1,1) == "#") then
+                    if Word == "#" then
+                        --< image
+                        if img ~= nil then
+                            local Image = Instance.new("ImageLabel");
+                            Image.Name = "img - "..img
+                            Image.Size = if self.Settings.Scaled then UDim2.fromScale(TextSize/parentAbs.X,TextSize/parentAbs.Y) else UDim2.fromOffset(TextSize,TextSize)
+                            Image.Parent = self.Frame;
+                            Image.BackgroundTransparency = 1;
+                            Image.Image = "rbxassetid://"..img
+                            continue
+                        end
+                        --> image
+                    else
+                        --< functions
+                        local WordLength = #Word;
+                        local id = ss(Word,min(2,WordLength),WordLength)
+                        if id ~= nil then
+                            local newWord = self:GetIdValue(id) or id;
+                            Word = newWord;
+                        end
+                        --> functions
+                    end
+                end
+                --> ids
+
+                local WordInstance = Instance.new("TextLabel");
+                WordInstance.Name = Word;
+                WordInstance.Parent = self.Frame;
+                WordInstance.TextTransparency = Transparency;
+                WordInstance.TextSize = TextSize;
+                WordInstance.Text = Word;
+                WordInstance.TextXAlignment = self.Settings.XAlignment or DefaultX;
+                WordInstance.TextYAlignment = self.Settings.YAlignment or DefaultY;
+                WordInstance.BackgroundTransparency = 1;
+                if fontface ~= nil then
+                    WordInstance.FontFace = fontface;
+                else
+                    WordInstance.Font = font or Enum.Font.SourceSans;
+                end
+                WordInstance.TextColor3 = Color or Color3.new(1,1,1);
+                local Bounds = WordInstance.TextBounds;
+                if self.Settings.Scaled then
+                    WordInstance.Size = UDim2.fromScale(Bounds.X/parentAbs.X,TextSize/parentAbs.Y);
+                    WordInstance.TextScaled = true;
+                else
+                    WordInstance.Size = UDim2.fromOffset(Bounds.X,TextSize);
+                end
+                local ContentSize = List.AbsoluteContentSize;
+                 if not self.Settings.Overfill and (--[[ContentSize.X > parentAbs.X or ]]ContentSize.Y > parentAbs.Y) then
+                    WordInstance.Parent = nil;
+                    WordInstance:Destroy();
+                    return
+                end
+            end
+        end
+    end;
     self:Destroy()
 end
 return module;
