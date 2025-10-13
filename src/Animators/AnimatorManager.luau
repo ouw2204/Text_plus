@@ -23,17 +23,14 @@ function Terminate(Content: Types.PlayableType)
     end
 end
 return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2)
-    if (Content.LastRunSuccessful == false and Content.__Broke == nil) or Content == nil or Content.Frame == nil or Content.Frame.Parent == nil then
+    if (Content.LastRunSuccessful == false and Content.__Broke == nil) or Content == nil or Content.Container == nil or Content.Container.Parent == nil then
         --warn(`Something went wrong while running Text+ so the programmed was terminated.`)
         Content:Destroy()
         return;
     end
     Content.LastRunSuccessful = false;
     if (Content.Timer == nil or Content.Timer+WaitTime > (Content.CurrentStep or Content.Settings.Step or Defaults.Step)/(Content.CurrentSpeed or Content.Settings.Speed or Defaults.Speed)) and Content.__Broke == nil then
-        local TextSize = Content.Settings.Size;
-        if Content.Settings.Scaled then
-            TextSize = min(min(parentAbs.Y,100)* (Content.CurrentScale or Content.Settings.Scale or 1),100)
-        end
+        
         
         local Cont = Content.Sequence[Content.CurrentIndex];
         if Cont == nil then Terminate(Content) return end;
@@ -45,6 +42,8 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
             local Txt = Content.Sequence[Content.CurrentIndex];
             if tof(Txt) == tabletxt then
                 if Txt.Params then
+                    Content.CurrentSize = Txt.Params.size;
+                    Content.Params = Txt.Params;
                     Content.CurrentStep = Txt.Params.step;
                     Content.Chunks = Txt.Params.chunks;
                     Content.CurrentScale = Txt.Params.scale
@@ -60,6 +59,11 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
             local List,Count = Utility.splitWordsAndSpaces(Txt);
             Content.List = List;
             Content.Count = Count;
+        end
+        
+        local TextSize = Content.CurrentSize or Content.Settings.Size;
+        if Content.Settings.Scaled then
+            TextSize = min(min(parentAbs.Y,100)* (Content.CurrentScale or Content.Settings.Scale or 1),100)
         end
         
         --< validators
@@ -99,7 +103,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                                     local Image = Instance.new("ImageLabel");
                                     Image.Name = "img - "..Content.Params.img
                                     Image.Size = if Content.Settings.Scaled then UDim2.fromScale(TextSize/parentAbs.X,TextSize/parentAbs.Y) else UDim2.fromOffset(TextSize,TextSize)
-                                    Image.Parent = Content.Frame;
+                                    Image.Parent = Content.Container;
                                     Image.BackgroundTransparency = 1;
                                     Image.Image = "rbxassetid://"..Content.Params.img
                                     Pass = false;
@@ -130,7 +134,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             Content.PrevCharX = 0;
                             local WordInstance = Instance.new("TextLabel");
                             WordInstance.Name = Content.Word;
-                            WordInstance.Parent = Content.Frame;
+                            WordInstance.Parent = Content.Container;
                             WordInstance.TextTransparency = 1;
                             WordInstance.TextSize = TextSize;
                             WordInstance.Text = Content.Word;
@@ -184,7 +188,6 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             Content.CurrentAnimation = nil;
                         else
                             IncreaseCurrentCharacterPosition = true;
-                            local String = ss(Content.Word,0,Content.CurrentCharacterPosition)
                             local Char = ss(Content.Word,(Content.PrevCharacterPosition or 0) +1 ,Content.CurrentCharacterPosition)
                             local Txt = Instance.new("TextLabel");
                             Txt.Name = Char;
@@ -195,7 +198,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             Txt.TextSize = TextSize;
                             --Txt.TextScaled = true;
                             Txt.AnchorPoint = Vector2.new(.5,.5);
-                            Txt.TextXAlignment = Enum.TextXAlignment.Center;
+                            Txt.TextXAlignment = Enum.TextXAlignment.Left;
                             Txt.TextYAlignment = Enum.TextYAlignment.Center;
                             Txt.BackgroundTransparency = 1;
                             if Content.Settings.FontFace ~= nil or Content.CurrentFontFace ~= nil then
@@ -211,7 +214,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             Content.PrevCharX += X;
                             Txt.TextScaled = true;
                             Txt.TextColor3 = Content.CurrentColor or Content.Settings.Color or Color3.new(1,1,1)
-                            Txt.Size = UDim2.fromScale(1,1);
+                            Txt.Size = UDim2.fromScale(X,1);
 
                             if Content.CurrentAnimation ~= nil then
                                 Content.CurrentAnimation:AddLetter(Txt)
@@ -241,9 +244,10 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                 Content.CurrentAmplitude = fetch.Params.amplitude
                 Content.CurrentFontFace = fetch.Params.fontface
                 Content.CurrentFont = fetch.Params.font;
-
+                Content.CurrentSize = fetch.Params.size;
                 Content.Params = fetch.Params;
             else
+                Content.CurrentSize = nil;
                 Content.CurrentFont = nil;
                 Content.CurrentAmplitude = nil;
                 Content.Params =nil;

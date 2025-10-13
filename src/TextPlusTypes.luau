@@ -30,9 +30,10 @@ export type PlayableType = {
     Play: (self: PlayableType) -> PlayableType;
     Destroy: (self: PlayableType) -> ();
     GetIdValue: (self: PlayableType, id: string) -> (string?);
-    Print: (self: PlayableType, ParentFrame: Frame) -> ();
+    Print: (self: PlayableType, ParentFrame: Frame) -> Vector2;
     Wait: (self: PlayableType) -> ();
-    Frame: Frame | CanvasGroup?
+    Container: Frame | CanvasGroup | {List: UIListLayout?}?;
+    ContentSize: Vector2?;
 };
 export type textPlusType = {
     new: (Content: string,DefaultSettings: DefaultSettingsType?) -> PlayableType;
@@ -50,6 +51,7 @@ export type ContentType = {
     Step: number?,
     Chunks: number?,
     Scale: number?,
+    Size: number?;
     Transparency: number?,
     Style: string?,
     Amplitude: number?,

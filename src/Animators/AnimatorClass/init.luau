@@ -140,7 +140,7 @@ function module:Destroy()
     for i = self.Index,1,-1 do
         local Letter = self.Letters[i]
         self.Letters[i] = nil;
-        --Letter:Destroy();
+        --Letter:Destroy(); -- Letter deletion;
     end
     self.Letters = nil;
     if self.DefaultSize then
@@ -169,7 +169,7 @@ function module:Destroy()
         self.Settings = nil;
     end
     self.Word.TextColor3 = self.color;
-    --self.Word.TextTransparency = self.transparency;
+    --self.Word.TextTransparency = self.transparency; -- word transparency
     self.Amplitude = nil;
     self.HasUpdate = nil;
     self.Index = nil;

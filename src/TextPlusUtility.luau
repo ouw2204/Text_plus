@@ -1,11 +1,5 @@
 local module = {};
 local Storage = require(script.Parent.Storage)
-local opposites = {
-    ["%["] = "%]",
-    ["%{"] = "%}",
-    ["%("] = "%)",
-    ["%<"] = "%>",
-}
 local ss = string.sub
 local sl = string.lower
 local tof = typeof
@@ -123,6 +117,7 @@ local SpecialCompilers; SpecialCompilers = {
     ["textsize"] = tonumbfunc;
     ["amplitude"] = tonumbfunc;
     step = tonumbfunc;
+    size = tonumbfunc;
     ["fontface"] = function(value: string)
         if value == nil then return end;
         
