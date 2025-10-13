@@ -15,63 +15,30 @@ local ss = string.sub
 local min = math.min
 local ListName = "List";
 
-function module:Play(ParentFrame: Frame)
-    self.__playing = true;
+function module:GetContentSize(ParentFrame: Frame)
+    if ParentFrame == nil then return end;
+    --< Get Initial Text Size
     if self.RawContent ~= nil and self.Sequence == nil then
         self.Sequence = Utility.Phase1(self.RawContent,self);
+        self.SequenceCount = #self.Sequence
         self.RawContent = nil;
     end
-    if self.RenderStep ~= nil then
-        self.RenderStep:Disconnect();
-        self.RenderStep = nil;
-    end
-    if self.Container ~= nil then
-        self.Container:Destroy();
-    end
-    local isBillBoard = ParentFrame:FindFirstAncestorOfClass("BillboardGui") ~= nil;
+    
+
     local parentAbs = ParentFrame.AbsoluteSize
-    self.Container = (self.Settings.UseCanvas and Instance.new("CanvasGroup")) or Instance.new"Frame";
-    self.Container.Name = "TextPlusTextHolder";
-    self.Container.Size =  UDim2.fromScale(1,1) --UDim2.fromOffset(parentAbs.X,parentAbs.Y); --(isBillBoard and UDim2.fromScale(1,1)) or UDim2.fromOffset(parentAbs.X,parentAbs.Y);
-    self.Container.BackgroundTransparency = 1;
-    self.Container.Parent = ParentFrame;
+    local Container = Instance.new("Frame");
+    Container.Name = "TextPlusTextHolder";
+    Container.Size =  UDim2.fromScale(1,1) --UDim2.fromOffset(parentAbs.X,parentAbs.Y); --(isBillBoard and UDim2.fromScale(1,1)) or UDim2.fromOffset(parentAbs.X,parentAbs.Y);
+    Container.BackgroundTransparency = 1;
+    Container.Parent = ParentFrame;
     local List = Instance.new"UIListLayout"
-    List.Parent = self.Container;
+    List.Parent = Container;
     List.Name = "List";
     List.SortOrder = Enum.SortOrder.LayoutOrder;
-    self.ListObject = List;
-
-
-    --
-    if not (isBillBoard) then
-        local XAnchor,YAnchor = 0,0;
-        if self.Settings.YAlignment == Enum.TextYAlignment.Center then
-            List.VerticalAlignment = Enum.VerticalAlignment.Center;
-            YAnchor = .5;
-        elseif self.Settings.YAlignment == Enum.TextYAlignment.Bottom then
-            List.VerticalAlignment = Enum.VerticalAlignment.Bottom;
-            YAnchor = 1;
-        end
-        if self.Settings.XAlignment == Enum.TextXAlignment.Center then
-            List.HorizontalAlignment = Enum.HorizontalAlignment.Center;
-            XAnchor = .5;
-        elseif self.Settings.XAlignment == Enum.TextXAlignment.Right then
-            List.HorizontalAlignment = Enum.HorizontalAlignment.Right;
-            XAnchor = 1;
-        end
-        self.Container.AnchorPoint = Vector2.new(XAnchor,YAnchor)
-        self.Container.Position = UDim2.fromScale(XAnchor,YAnchor)
-    end;
+    self:ApplyAlignments(Container, List)
     List.FillDirection = Enum.FillDirection.Horizontal;
     List.Wraps = self.Settings.Wrapped or false;
-    self.CurrentIndex = 1;
-    self.CurrentIndexPosition = 1;
-    self.CurrentCharacterPosition = 1;
-    self.SequenceCount = #self.Sequence;
-
-    
-    --< Get Initial Text Size
-    for i,v in ipairs(self.Sequence) do
+    for _,v in ipairs(self.Sequence) do
         local istable = tof(v) == tabletxt
         local Split;
         local Params = nil
@@ -84,9 +51,8 @@ function module:Play(ParentFrame: Frame)
         local broke = false;
         local TextSize,Scale,fontface,font,img = self.Settings.Size,self.Settings.Scale or 1,self.Settings.FontFace,self.Settings.Font,nil;
         if Params ~= nil then
-            --[[Color = Params.color or Color;]]
             Scale = Params.scale or Scale;
-            TextSize = Params.Size or TextSize;
+            TextSize = Params.size or TextSize;
             fontface = Params.fontface or fontface;
             font = Params.font or font
             img = Params.img
@@ -105,7 +71,7 @@ function module:Play(ParentFrame: Frame)
                         Image.Name = "img - "..img
                         Image.Size = if self.Settings.Scaled then UDim2.fromScale(TextSize/parentAbs.X,TextSize/parentAbs.Y) else UDim2.fromOffset(TextSize,TextSize)
                         Image.ImageTransparency = 1;
-                        Image.Parent = self.Container;
+                        Image.Parent = Container;
                         Image.BackgroundTransparency = 1;
                         Image.Image = "rbxassetid://"..img
                         continue
@@ -132,7 +98,7 @@ function module:Play(ParentFrame: Frame)
             WordInstance.TextYAlignment = self.Settings.YAlignment or DefaultY;
             WordInstance.BackgroundTransparency = 1;
             WordInstance.TextTransparency = 1;
-            WordInstance.Parent = self.Container;
+            WordInstance.Parent = Container;
             if fontface ~= nil then
                 WordInstance.FontFace = fontface;
             else
@@ -157,14 +123,69 @@ function module:Play(ParentFrame: Frame)
             break;
         end
     end
-    local Abs = self.Container.List.AbsoluteContentSize;
-    for _,v in self.Container:GetChildren() do
-        if v.Name == ListName then continue end;
-        v:Destroy();
-    end
-    self.ContentSize = Abs;
+    local Abs = Container.List.AbsoluteContentSize;
+    Container:Destroy()
+    return Abs;
     --> Get Initial size
+end
+function module:ApplyAlignments(Container: any, List: UIListLayout)
+    if List == nil then return end;
+    do
+        local XAnchor,YAnchor = 0,0;
+        if self.Settings.YAlignment == Enum.TextYAlignment.Center then
+            List.VerticalAlignment = Enum.VerticalAlignment.Center;
+            YAnchor = .5;
+        elseif self.Settings.YAlignment == Enum.TextYAlignment.Bottom then
+            List.VerticalAlignment = Enum.VerticalAlignment.Bottom;
+            YAnchor = 1;
+        end
+        if self.Settings.XAlignment == Enum.TextXAlignment.Center then
+            List.HorizontalAlignment = Enum.HorizontalAlignment.Center;
+            XAnchor = .5;
+        elseif self.Settings.XAlignment == Enum.TextXAlignment.Right then
+            List.HorizontalAlignment = Enum.HorizontalAlignment.Right;
+            XAnchor = 1;
+        end
+        Container.AnchorPoint = Vector2.new(XAnchor,YAnchor)
+        Container.Position = UDim2.fromScale(XAnchor,YAnchor)
+    end
+end
+function module:Play(ParentFrame: Frame)
+    self.__playing = true;
+    if self.RawContent ~= nil and self.Sequence == nil then
+        self.Sequence = Utility.Phase1(self.RawContent,self);
+        self.SequenceCount = #self.Sequence
+        self.RawContent = nil;
+    end
+    if self.RenderStep ~= nil then
+        self.RenderStep:Disconnect();
+        self.RenderStep = nil;
+    end
+    if self.Container ~= nil then
+        self.Container:Destroy();
+    end
 
+    local parentAbs = ParentFrame.AbsoluteSize
+    self.Container = (self.Settings.UseCanvas and Instance.new("CanvasGroup")) or Instance.new"Frame";
+    self.Container.Name = "TextPlusTextHolder";
+    self.Container.Size =  UDim2.fromScale(1,1) --UDim2.fromOffset(parentAbs.X,parentAbs.Y); --(isBillBoard and UDim2.fromScale(1,1)) or UDim2.fromOffset(parentAbs.X,parentAbs.Y);
+    self.Container.BackgroundTransparency = 1;
+    self.Container.Parent = ParentFrame;
+    local List = Instance.new"UIListLayout"
+    List.Parent = self.Container;
+    List.Name = "List";
+    List.SortOrder = Enum.SortOrder.LayoutOrder;
+    self.ListObject = List;
+
+
+    --
+    self:ApplyAlignments(self.Container, List)
+
+    List.FillDirection = Enum.FillDirection.Horizontal;
+    List.Wraps = self.Settings.Wrapped or false;
+    self.CurrentIndex = 1;
+    self.CurrentIndexPosition = 1;
+    self.CurrentCharacterPosition = 1;
 
     self.RenderStep = RunService.Heartbeat:Connect(function(waitTime)
         AnimatorManager(self,waitTime,parentAbs)
@@ -272,13 +293,12 @@ function module:Print(ParentFrame: Frame)
     self.ListObject = nil;
 
 
-    local isBillBoard = ParentFrame:FindFirstAncestorOfClass("BillboardGui") ~= nil;
     local parentAbs = ParentFrame.AbsoluteSize
     local List
     if self.Container == nil then
         self.Container = (self.Settings.UseCanvas and Instance.new("CanvasGroup")) or Instance.new"Frame";
         self.Container.Name = "TextPlusTextHolder";
-        self.Container.Size = (isBillBoard and UDim2.fromScale(1,1)) or UDim2.fromOffset(parentAbs.X,parentAbs.Y);
+        self.Container.Size = UDim2.fromScale(1,1);
         self.Container.BackgroundTransparency = 1;
         self.Container.Parent = ParentFrame;
         List = Instance.new"UIListLayout"
@@ -290,25 +310,8 @@ function module:Print(ParentFrame: Frame)
         List = self.Container.List;
     end;
     --
-    if not (isBillBoard) then
-        local XAnchor,YAnchor = 0,0;
-        if self.Settings.YAlignment == Enum.TextYAlignment.Center then
-            List.VerticalAlignment = Enum.VerticalAlignment.Center;
-            YAnchor = .5;
-        elseif self.Settings.YAlignment == Enum.TextYAlignment.Bottom then
-            List.VerticalAlignment = Enum.VerticalAlignment.Bottom;
-            YAnchor = 1;
-        end
-        if self.Settings.XAlignment == Enum.TextXAlignment.Center then
-            List.HorizontalAlignment = Enum.HorizontalAlignment.Center;
-            XAnchor = .5;
-        elseif self.Settings.XAlignment == Enum.TextXAlignment.Right then
-            List.HorizontalAlignment = Enum.HorizontalAlignment.Right;
-            XAnchor = 1;
-        end
-        self.Container.AnchorPoint = Vector2.new(XAnchor,YAnchor)
-        self.Container.Position = UDim2.fromScale(XAnchor,YAnchor)
-    end;
+    self:ApplyAlignments(self.Container, List)
+
     List.FillDirection = Enum.FillDirection.Horizontal;
     List.Wraps = self.Settings.Wrapped or false;
     if self.RawContent ~= nil and self.Sequence == nil then
@@ -324,7 +327,7 @@ function module:Print(ParentFrame: Frame)
             if self.Sequence[i].Params then
                 Color = self.Sequence[i].Params.color or Color;
                 Scale = self.Sequence[i].Params.scale or Scale;
-                TextSize = self.Sequence[i].Params.Size or TextSize;
+                TextSize = self.Sequence[i].Params.size or TextSize;
                 Transparency = self.Sequence[i].Params.transparency or Transparency;
                 fontface = self.Sequence[i].Params.fontface or fontface;
                 font = self.Sequence[i].Params.font or font

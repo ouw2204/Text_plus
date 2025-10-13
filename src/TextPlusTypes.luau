@@ -27,13 +27,13 @@ export type AnimatorType = {
     DefaultPosition: {[TextLabel]: UDim2};
 }
 export type PlayableType = {
-    Play: (self: PlayableType) -> PlayableType;
+    Play: (self: PlayableType, Parent: any) -> PlayableType;
     Destroy: (self: PlayableType) -> ();
     GetIdValue: (self: PlayableType, id: string) -> (string?);
-    Print: (self: PlayableType, ParentFrame: Frame) -> Vector2;
+    Print: (self: PlayableType, Parent: any) -> Vector2;
     Wait: (self: PlayableType) -> ();
     Container: Frame | CanvasGroup | {List: UIListLayout?}?;
-    ContentSize: Vector2?;
+    GetContentSize: (self: PlayableType, Parent: any) -> Vector2?;
 };
 export type textPlusType = {
     new: (Content: string,DefaultSettings: DefaultSettingsType?) -> PlayableType;

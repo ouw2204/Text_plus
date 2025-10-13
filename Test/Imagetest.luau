@@ -14,14 +14,14 @@ return function (Target: GuiBase)
             -- do stuff
             local Text = TextPlus.new("Hello world this [#]<img=115664934599527,Style=teststyle> [is an image, again]<Size=100>: [#]<img=115664934599527,Scale=.35>",{
                 Size = 50;
-                XAlignment = Enum.TextXAlignment.Center;
-                YAlignment = Enum.TextYAlignment.Center;
+                XAlignment = Enum.TextXAlignment.Left;
+                YAlignment = Enum.TextYAlignment.Top;
                 --[[Scaled = true;
                 Scale = .5;]]
 
             });
-            
-            Text:Play(Entity)
+            --print(Text:GetContentSize(Entity))
+            Text:Print(Entity)
             
         end
     }
