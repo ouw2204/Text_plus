@@ -16,6 +16,8 @@ export type DefaultSettingsType = {
     Style: number?;
     StepFactor: number?;
     Amplitude: number?;
+    StrokeColor: Color3?;
+    StrokeTransparency: number?;
 };
 export type AnimatorType = {
     Letters: {TextLabel};
@@ -40,7 +42,7 @@ export type textPlusType = {
     Format: (Content: ContentType) -> ();
     RegisterId: (Id: string, Content: any) -> (boolean?);
     UnRegisterId: (Id: string) -> ();
-    RegisterStyle: (Id: string,Function: (Letter: TextLabel,Progress: number,Transparency: number,Color: Color3,Size: UDim2,Position: UDim2,Amplitude: number?,Reversing: boolean?) -> ()) -> ();
+    RegisterStyle: (Id: string,Function: (Letter: TextLabel,Progress: number,Transparency: number, StrokeTransparency: number,Color: Color3,StrokeColor: Color3,Size: UDim2,Position: UDim2,Amplitude: number?,Reversing: boolean?) -> ()) -> ();
     UnRegisterStyle: (Id: string) -> ();
 }
 export type ContentType = {

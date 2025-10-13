@@ -14,6 +14,10 @@ local tabletxt = "table"
 local DefaultX = Enum.TextXAlignment.Left;
 local DefaultY = Enum.TextYAlignment.Top;
 local ts = tostring
+
+local ud2f = UDim2.fromScale;
+local ud2fo = UDim2.fromOffset;
+
 function Terminate(Content: Types.PlayableType)
     Content.__Broke = true;
     if Content.Animations == nil or #Content.Animations == 0 then
@@ -53,6 +57,8 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                     Content.CurrentAmplitude = Txt.Params.amplitude
                     Content.CurrentFontFace = Txt.Params.fontface
                     Content.CurrentFont = Txt.Params.font;
+                    Content.CurrentStrokeColor = Txt.Params.strokecolor;
+                    Content.CurrentStrokeTransparency = Txt.Params.stroketransparency;
                 end;
                 Txt = Txt.Text;
             end
@@ -102,7 +108,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                                 if Content.Params.img ~= nil then
                                     local Image = Instance.new("ImageLabel");
                                     Image.Name = "img - "..Content.Params.img
-                                    Image.Size = if Content.Settings.Scaled then UDim2.fromScale(TextSize/parentAbs.X,TextSize/parentAbs.Y) else UDim2.fromOffset(TextSize,TextSize)
+                                    Image.Size = if Content.Settings.Scaled then ud2f(TextSize/parentAbs.X,TextSize/parentAbs.Y) else ud2fo(TextSize,TextSize)
                                     Image.Parent = Content.Container;
                                     Image.BackgroundTransparency = 1;
                                     Image.Image = "rbxassetid://"..Content.Params.img
@@ -149,10 +155,10 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             WordInstance.TextColor3 = Content.Settings.Color or Color3.new(1,1,1);
                             local Bounds = WordInstance.TextBounds;
                             if Content.Settings.Scaled then
-                                WordInstance.Size = UDim2.fromScale(Bounds.X/parentAbs.X,TextSize/parentAbs.Y);
+                                WordInstance.Size = ud2f(Bounds.X/parentAbs.X,TextSize/parentAbs.Y);
                                 WordInstance.TextScaled = true;
                             else
-                                WordInstance.Size = UDim2.fromOffset(Bounds.X,TextSize);
+                                WordInstance.Size = ud2fo(Bounds.X,TextSize);
                             end
                             Content.WordInstance = WordInstance;
                             local ContentSize = Content.ListObject.AbsoluteContentSize;
@@ -192,7 +198,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             local Txt = Instance.new("TextLabel");
                             Txt.Name = Char;
                             --Content.CurrentCharTxt = Txt;
-                            Txt.Size = UDim2.fromScale(1,1);
+                            Txt.Size = ud2f(1,1);
                             Txt.TextTransparency = 1;
                             Txt.Parent = Content.WordInstance;
                             Txt.TextSize = TextSize;
@@ -210,11 +216,14 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             Txt.Text = Char;
 
                             local X = (Txt.TextBounds.X)/ParentAbs.X
-                            Txt.Position = UDim2.fromScale( Content.PrevCharX + (X/2),.5);
+                            Txt.Position = ud2f( Content.PrevCharX + (X/2),.5);
                             Content.PrevCharX += X;
                             Txt.TextScaled = true;
-                            Txt.TextColor3 = Content.CurrentColor or Content.Settings.Color or Color3.new(1,1,1)
-                            Txt.Size = UDim2.fromScale(X,1);
+                            Txt.TextTransparency = (Content.CurrentTransparency or Content.Settings.Transparency or Defaults.Transparency)
+                            Txt.TextColor3 = Content.CurrentColor or Content.Settings.Color or Defaults.Color;
+                            Txt.TextStrokeColor3 = (Content.CurrentStrokeColor or Content.Settings.StrokeColor or Defaults.StrokeColor)
+                            Txt.TextStrokeTransparency = (Content.CurrentStrokeTransparency or Content.Settings.StrokeTransparency or Defaults.StrokeTransparency)
+                            Txt.Size = ud2f(X,1);
 
                             if Content.CurrentAnimation ~= nil then
                                 Content.CurrentAnimation:AddLetter(Txt)
@@ -246,7 +255,11 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                 Content.CurrentFont = fetch.Params.font;
                 Content.CurrentSize = fetch.Params.size;
                 Content.Params = fetch.Params;
+                Content.CurrentStrokeColor = fetch.Params.strokecolor;
+                Content.CurrentStrokeTransparency = fetch.Params.stroketransparency;
             else
+                Content.CurrentStrokeColor = nil;
+                Content.CurrentStrokeTransparency = nil;
                 Content.CurrentSize = nil;
                 Content.CurrentFont = nil;
                 Content.CurrentAmplitude = nil;

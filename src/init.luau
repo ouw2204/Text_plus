@@ -45,7 +45,7 @@ function  mt.UnRegisterId(Id: string)
     end
     Storage.IdsStorage[Id] = nil;
 end
-function mt.RegisterStyle(Id: string,Function: (Letter: TextLabel,Progress: number,Transparency: number,Color: Color3,Size: UDim2,Position: UDim2,Amplitude: number?,Reversing: boolean?) -> ())
+function mt.RegisterStyle(Id: string,Function: (Letter: TextLabel,Progress: number,Transparency: number, StrokeTransparency: number,Color: Color3,StrokeColor: Color3,Size: UDim2,Position: UDim2,Amplitude: number?,Reversing: boolean?) -> ())
     if Id == nil or Function == nil then return end;
     Styles[Id] = Function;
 end

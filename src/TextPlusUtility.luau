@@ -75,39 +75,41 @@ end
 local booleanfunc = function(Content)
     return sl(Content) == "true"
 end;
-local SpecialCompilers; SpecialCompilers = {
-    ["color"] = function(value: string)
-        if value == nil then return end;
-        if string.find(value,"%(") == nil then
-            return Color3.fromHex(value)
+local tocolorfunc = function(value: string)
+    if value == nil then return end;
+    if string.find(value,"%(") == nil then
+        return Color3.fromHex(value)
+    else
+        local mode, r, g, b = string.match(value, "^(.-)%((%s*[+-]?%d*%.?%d+)%s*,%s*([+-]?%d*%.?%d+)%s*,%s*([+-]?%d*%.?%d+)%s*%)")
+        if not mode then
+            -- Try without brackets: rgb 255,1,3 or rgb255,1,3
+            mode, r, g, b = string.match(value, "^(%a+)%s*([+-]?%d*%.?%d+)%s*,%s*([+-]?%d*%.?%d+)%s*,%s*([+-]?%d*%.?%d+)")
+        end
+        if mode == nil then return end;
+        r = tonumber(r); g = tonumber(g); b = tonumber(b);
+        if r == nil or g == nil or b == nil then return end;
+        mode = string.match(sl(mode),"(%w+)");
+        if mode == nil then
+            if r ~= nil and g ~= nil and b ~= nil then
+                return Color3.new(r,g,b)
+            end
         else
-            local mode, r, g, b = string.match(value, "^(.-)%((%s*[+-]?%d*%.?%d+)%s*,%s*([+-]?%d*%.?%d+)%s*,%s*([+-]?%d*%.?%d+)%s*%)")
-            if not mode then
-                -- Try without brackets: rgb 255,1,3 or rgb255,1,3
-                mode, r, g, b = string.match(value, "^(%a+)%s*([+-]?%d*%.?%d+)%s*,%s*([+-]?%d*%.?%d+)%s*,%s*([+-]?%d*%.?%d+)")
-            end
-            if mode == nil then return end;
-            r = tonumber(r); g = tonumber(g); b = tonumber(b);
-            if r == nil or g == nil or b == nil then return end;
-            mode = string.match(sl(mode),"(%w+)");
-            if mode == nil then
+            if mode == "rgb" then
                 if r ~= nil and g ~= nil and b ~= nil then
-                    return Color3.new(r,g,b)
+                    return Color3.fromRGB(r,g,b)
                 end
-            else
-                if mode == "rgb" then
-                    if r ~= nil and g ~= nil and b ~= nil then
-                        return Color3.fromRGB(r,g,b)
-                    end
-                elseif mode == "hsv" then
-                    if r ~= nil and g ~= nil and b ~= nil then
-                        return Color3.fromHSV(r,g,b)
-                    end
+            elseif mode == "hsv" then
+                if r ~= nil and g ~= nil and b ~= nil then
+                    return Color3.fromHSV(r,g,b)
                 end
             end
-        end;
-        return nil
-    end,
+        end
+    end;
+    return nil
+end
+local SpecialCompilers; SpecialCompilers = {
+    ["color"] = tocolorfunc;
+    ["strokecolor"] = tocolorfunc;
     looped = booleanfunc;
     reverse = booleanfunc;
     ["repeat"] = tonumbfunc;
@@ -118,6 +120,7 @@ local SpecialCompilers; SpecialCompilers = {
     ["amplitude"] = tonumbfunc;
     step = tonumbfunc;
     size = tonumbfunc;
+    stroketransparency = tonumbfunc;
     ["fontface"] = function(value: string)
         if value == nil then return end;
         

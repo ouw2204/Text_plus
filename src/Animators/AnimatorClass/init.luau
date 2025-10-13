@@ -12,7 +12,7 @@ local StyleFactors = {
     Pop = 1.5;
 };
 local repeatword = "repeat";
-function updateSingle(Style: string,Letter: TextLabel,Step: number,Transparency: number,Color: Color3,HasUpdate: boolean,Index: number,Started: number,StepFactor: number,Size: UDim2,Position: UDim2,Amplitude: number?,StyleTable: {["repeat"]: number?,stepfactor: number?, looped: boolean?,reverse: boolean?, delaytime: number?,amplitude: number?}?)
+function updateSingle(Style: string,Letter: TextLabel,Step: number,Transparency: number, StrokeTransparency: number,Color: Color3, StrokeColor: Color3,HasUpdate: boolean,Index: number,Started: number,StepFactor: number,Size: UDim2,Position: UDim2,Amplitude: number?,StyleTable: {["repeat"]: number?,stepfactor: number?, looped: boolean?,reverse: boolean?, delaytime: number?,amplitude: number?}?)
     if Styles[Style] == nil then
         return true;
     end
@@ -113,7 +113,7 @@ function updateSingle(Style: string,Letter: TextLabel,Step: number,Transparency:
     end
     
     -- Always run the animation first, now with Reversing parameter
-    local ret = Styles[Style](Letter,clamped,Transparency,Color,Size,Position,Amplitude,Reversing)
+    local ret = Styles[Style](Letter,clamped,Transparency,StrokeTransparency,Color,StrokeColor,Size,Position,Amplitude,Reversing)
 
     -- Check for completion after running the animation
     if shouldComplete or ret == true then
@@ -138,7 +138,7 @@ function module:Destroy()
         self.__Content = nil;
     end
     for i = self.Index,1,-1 do
-        local Letter = self.Letters[i]
+        --local Letter = self.Letters[i]
         self.Letters[i] = nil;
         --Letter:Destroy(); -- Letter deletion;
     end
@@ -181,6 +181,7 @@ function module:Destroy()
     self.color = nil;
     self.step = nil;
     self.transparency = nil;
+    self.StrokeTransparency = nil;
     self.Style = nil;
     self.StyleIsTable = nil;
     setmetatable(self,nil)
@@ -194,13 +195,13 @@ function module:Update()
         if self.StyleIsTable then
             for x = self.StylesCount[found].Count,1,-1 do
                 if tof(self.StylesCount[found].Styles[x]) == tableType then
-                   local Completed = updateSingle(self.StylesCount[found].Styles[x].Style,found,self.step,self.transparency,self.color,self.HasUpdate,i,self.Started,self.StepFactor,self.DefaultSize[i],self.DefaultPosition[i],self.Amplitude,self.StylesCount[found].Styles[x])
+                   local Completed = updateSingle(self.StylesCount[found].Styles[x].Style,found,self.step,self.transparency,self.stroketransparency,self.color,self.strokecolor,self.HasUpdate,i,self.Started,self.StepFactor,self.DefaultSize[i],self.DefaultPosition[i],self.Amplitude,self.StylesCount[found].Styles[x])
                     if Completed then
                         self.StylesCount[found].Count -= 1;
                         table.remove(self.StylesCount[found].Styles,x)
                     end
                 else
-                    local Completed = updateSingle(self.StylesCount[found].Styles[x],found,self.step,self.transparency,self.color,self.HasUpdate,i,self.Started,self.StepFactor,self.DefaultSize[i],self.DefaultPosition[i],self.Amplitude)
+                    local Completed = updateSingle(self.StylesCount[found].Styles[x],found,self.step,self.transparency,self.stroketransparency,self.color,self.strokecolor,self.HasUpdate,i,self.Started,self.StepFactor,self.DefaultSize[i],self.DefaultPosition[i],self.Amplitude)
                     if Completed then
                         self.StylesCount[found].Count -= 1;
                         table.remove(self.StylesCount[found].Styles,x)
@@ -214,7 +215,7 @@ function module:Update()
                 end
             end
         else
-            local Completed = updateSingle(self.Style,found,self.step,self.transparency,self.color,self.HasUpdate,i,self.Started,self.StepFactor,self.DefaultSize[i],self.DefaultPosition[i],self.Amplitude)
+            local Completed = updateSingle(self.Style,found,self.step,self.transparency,self.stroketransparency,self.color,self.strokecolor,self.HasUpdate,i,self.Started,self.StepFactor,self.DefaultSize[i],self.DefaultPosition[i],self.Amplitude)
             if Completed then
                 self.Indexes[i] = false;
                 self.Progress += 1;
@@ -235,7 +236,6 @@ function module:AddLetter(Letter: TextLabel)
         self.Indexes[self.Index] = Letter;
     end;
     self.Letters[self.Index] = Letter;
-    Letter.TextTransparency = self.transparency;
     if self.StyleIsTable then
         if self.StylesCount[Letter] == nil then
             self.StylesCount[Letter] = {
@@ -248,13 +248,13 @@ function module:AddLetter(Letter: TextLabel)
         end;
         for i = self.StylesCount[Letter].Count,1,-1 do
             if tof(self.Style[i]) == tableType then
-                local Completed = updateSingle(self.StylesCount[Letter].Styles[i].Style,Letter,self.step,self.transparency,self.color,self.HasUpdate,self.Index,self.Started,self.StepFactor,self.DefaultSize[self.Index],self.DefaultPosition[self.Index],self.Amplitude or 1,self.StylesCount[Letter].Styles[i])
+                local Completed = updateSingle(self.StylesCount[Letter].Styles[i].Style,Letter,self.step,self.transparency,self.stroketransparency,self.color,self.strokecolor,self.HasUpdate,self.Index,self.Started,self.StepFactor,self.DefaultSize[self.Index],self.DefaultPosition[self.Index],self.Amplitude or 1,self.StylesCount[Letter].Styles[i])
                 if Completed then
                     self.StylesCount[Letter].Count -= 1;
                     table.remove(self.StylesCount[Letter].Styles,i)
                 end
             else
-                local Completed = updateSingle(self.StylesCount[Letter].Styles[i],Letter,self.step,self.transparency,self.color,self.HasUpdate,self.Index,self.Started,self.StepFactor,self.DefaultSize[self.Index],self.DefaultPosition[self.Index],self.Amplitude or 1)
+                local Completed = updateSingle(self.StylesCount[Letter].Styles[i],Letter,self.step,self.transparency,self.stroketransparency,self.color,self.strokecolor,self.HasUpdate,self.Index,self.Started,self.StepFactor,self.DefaultSize[self.Index],self.DefaultPosition[self.Index],self.Amplitude or 1)
                 if Completed then
                     self.StylesCount[Letter].Count -= 1;
                     table.remove(self.StylesCount[Letter].Styles,i)
@@ -270,7 +270,7 @@ function module:AddLetter(Letter: TextLabel)
             end
         end
     else
-        local Completed = updateSingle(self.Style,Letter,self.step,self.transparency,self.color,self.HasUpdate,self.Index,self.Started,self.StepFactor,Letter.Size,Letter.Position,self.Amplitude or 1)
+        local Completed = updateSingle(self.Style,Letter,self.step,self.transparency,self.stroketransparency,self.color,self.strokecolor,self.HasUpdate,self.Index,self.Started,self.StepFactor,Letter.Size,Letter.Position,self.Amplitude or 1)
 
         if Completed then
             if self.HasUpdate then
@@ -312,6 +312,8 @@ return function(Content: Types.PlayableType,Word: TextLabel,Params: {[string]: n
     tab.StepFactor = (Params ~= nil and Params.stepfactor) or Settings.StepFactor or Defaults.StepFactor
     tab.step = (Params ~= nil and Params.step) or Settings.Step or Defaults.Step
     tab.transparency = (Params ~= nil and Params.transparency) or Settings.Transparency or Defaults.Transparency
+    tab.stroketransparency = (Params ~= nil and Params.stroketransparency) or Settings.StrokeTransparency or Defaults.StrokeTransparency
     tab.color = (Params ~= nil and Params.color) or Settings.Color or Defaults.Color
+    tab.strokecolor = (Params ~= nil and Params.strokecolor) or Settings.StrokeColor or Defaults.StrokeColor
     return setmetatable(tab,module) :: any
 end

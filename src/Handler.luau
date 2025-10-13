@@ -8,12 +8,15 @@ local Utility = require(script.Parent.TextPlusUtility)
 local tof = typeof
 local functiontxt = "function"
 local tabletxt = "table";
+local Defaults = require(script.Parent.Animators.Defaults)
 
 local DefaultX = Enum.TextXAlignment.Left;
 local DefaultY = Enum.TextYAlignment.Top;
 local ss = string.sub
 local min = math.min
 local ListName = "List";
+local ud2f = UDim2.fromScale;
+local ud2fo = UDim2.fromOffset;
 
 function module:GetContentSize(ParentFrame: Frame)
     if ParentFrame == nil then return end;
@@ -28,7 +31,7 @@ function module:GetContentSize(ParentFrame: Frame)
     local parentAbs = ParentFrame.AbsoluteSize
     local Container = Instance.new("Frame");
     Container.Name = "TextPlusTextHolder";
-    Container.Size =  UDim2.fromScale(1,1) --UDim2.fromOffset(parentAbs.X,parentAbs.Y); --(isBillBoard and UDim2.fromScale(1,1)) or UDim2.fromOffset(parentAbs.X,parentAbs.Y);
+    Container.Size =  ud2f(1,1) --ud2fo(parentAbs.X,parentAbs.Y); --(isBillBoard and ud2f(1,1)) or ud2fo(parentAbs.X,parentAbs.Y);
     Container.BackgroundTransparency = 1;
     Container.Parent = ParentFrame;
     local List = Instance.new"UIListLayout"
@@ -69,7 +72,7 @@ function module:GetContentSize(ParentFrame: Frame)
                     if img ~= nil then
                         local Image = Instance.new("ImageLabel");
                         Image.Name = "img - "..img
-                        Image.Size = if self.Settings.Scaled then UDim2.fromScale(TextSize/parentAbs.X,TextSize/parentAbs.Y) else UDim2.fromOffset(TextSize,TextSize)
+                        Image.Size = if self.Settings.Scaled then ud2f(TextSize/parentAbs.X,TextSize/parentAbs.Y) else ud2fo(TextSize,TextSize)
                         Image.ImageTransparency = 1;
                         Image.Parent = Container;
                         Image.BackgroundTransparency = 1;
@@ -102,14 +105,14 @@ function module:GetContentSize(ParentFrame: Frame)
             if fontface ~= nil then
                 WordInstance.FontFace = fontface;
             else
-                WordInstance.Font = font or Enum.Font.SourceSans;
+                WordInstance.Font = font or Defaults.Font;
             end
             local Bounds = WordInstance.TextBounds;
             if self.Settings.Scaled then
-                WordInstance.Size = UDim2.fromScale(Bounds.X/parentAbs.X,TextSize/parentAbs.Y);
+                WordInstance.Size = ud2f(Bounds.X/parentAbs.X,TextSize/parentAbs.Y);
                 WordInstance.TextScaled = true;
             else
-                WordInstance.Size = UDim2.fromOffset(Bounds.X,TextSize);
+                WordInstance.Size = ud2fo(Bounds.X,TextSize);
             end
             local ContentSize = List.AbsoluteContentSize;
             if not self.Settings.Overfill and (--[[ContentSize.X > parentAbs.X or ]]ContentSize.Y > parentAbs.Y) then
@@ -147,7 +150,7 @@ function module:ApplyAlignments(Container: any, List: UIListLayout)
             XAnchor = 1;
         end
         Container.AnchorPoint = Vector2.new(XAnchor,YAnchor)
-        Container.Position = UDim2.fromScale(XAnchor,YAnchor)
+        Container.Position = ud2f(XAnchor,YAnchor)
     end
 end
 function module:Play(ParentFrame: Frame)
@@ -168,7 +171,7 @@ function module:Play(ParentFrame: Frame)
     local parentAbs = ParentFrame.AbsoluteSize
     self.Container = (self.Settings.UseCanvas and Instance.new("CanvasGroup")) or Instance.new"Frame";
     self.Container.Name = "TextPlusTextHolder";
-    self.Container.Size =  UDim2.fromScale(1,1) --UDim2.fromOffset(parentAbs.X,parentAbs.Y); --(isBillBoard and UDim2.fromScale(1,1)) or UDim2.fromOffset(parentAbs.X,parentAbs.Y);
+    self.Container.Size =  ud2f(1,1) --ud2fo(parentAbs.X,parentAbs.Y); --(isBillBoard and ud2f(1,1)) or ud2fo(parentAbs.X,parentAbs.Y);
     self.Container.BackgroundTransparency = 1;
     self.Container.Parent = ParentFrame;
     local List = Instance.new"UIListLayout"
@@ -298,7 +301,7 @@ function module:Print(ParentFrame: Frame)
     if self.Container == nil then
         self.Container = (self.Settings.UseCanvas and Instance.new("CanvasGroup")) or Instance.new"Frame";
         self.Container.Name = "TextPlusTextHolder";
-        self.Container.Size = UDim2.fromScale(1,1);
+        self.Container.Size = ud2f(1,1);
         self.Container.BackgroundTransparency = 1;
         self.Container.Parent = ParentFrame;
         List = Instance.new"UIListLayout"
@@ -320,7 +323,7 @@ function module:Print(ParentFrame: Frame)
         self.RawContent = nil;
     end
     for i = 1,self.SequenceCount do
-        local TextSize,Color,Transparency,Scale,fontface,font,img = self.Settings.Size,self.Settings.Color,self.Settings.Transparency,self.Settings.Scale or 1,self.Settings.FontFace,self.Settings.Font,nil;
+        local TextSize,Color,StrokeColor,Transparency,StrokeTransparency,Scale,fontface,font,img = self.Settings.Size,self.Settings.Color,self.Settings.StrokeColor,self.Settings.Transparency,self.Settings.StrokeTransparency,self.Settings.Scale or 1,self.Settings.FontFace,self.Settings.Font,nil;
         local Text = nil;
         if tof(self.Sequence[i]) == "table" then
             Text = self.Sequence[i].Text;
@@ -329,6 +332,8 @@ function module:Print(ParentFrame: Frame)
                 Scale = self.Sequence[i].Params.scale or Scale;
                 TextSize = self.Sequence[i].Params.size or TextSize;
                 Transparency = self.Sequence[i].Params.transparency or Transparency;
+                StrokeTransparency = self.Sequence[i].Params.stroketransparency or StrokeTransparency
+                StrokeColor = self.Sequence[i].Params.strokecolor or StrokeColor;
                 fontface = self.Sequence[i].Params.fontface or fontface;
                 font = self.Sequence[i].Params.font or font
                 img = self.Sequence[i].Params.img
@@ -354,7 +359,7 @@ function module:Print(ParentFrame: Frame)
                         if img ~= nil then
                             local Image = Instance.new("ImageLabel");
                             Image.Name = "img - "..img
-                            Image.Size = if self.Settings.Scaled then UDim2.fromScale(TextSize/parentAbs.X,TextSize/parentAbs.Y) else UDim2.fromOffset(TextSize,TextSize)
+                            Image.Size = if self.Settings.Scaled then ud2f(TextSize/parentAbs.X,TextSize/parentAbs.Y) else ud2fo(TextSize,TextSize)
                             Image.Parent = self.Container;
                             Image.BackgroundTransparency = 1;
                             Image.Image = "rbxassetid://"..img
@@ -383,18 +388,20 @@ function module:Print(ParentFrame: Frame)
                 WordInstance.TextXAlignment = self.Settings.XAlignment or DefaultX;
                 WordInstance.TextYAlignment = self.Settings.YAlignment or DefaultY;
                 WordInstance.BackgroundTransparency = 1;
+                WordInstance.TextStrokeTransparency = StrokeTransparency or Defaults.StrokeTransparency;
+                WordInstance.TextStrokeColor3 = StrokeColor or Defaults.StrokeColor;
                 if fontface ~= nil then
                     WordInstance.FontFace = fontface;
                 else
-                    WordInstance.Font = font or Enum.Font.SourceSans;
+                    WordInstance.Font = font or Defaults.Font;
                 end
-                WordInstance.TextColor3 = Color or Color3.new(1,1,1);
+                WordInstance.TextColor3 = Color or Defaults.Color;
                 local Bounds = WordInstance.TextBounds;
                 if self.Settings.Scaled then
-                    WordInstance.Size = UDim2.fromScale(Bounds.X/parentAbs.X,TextSize/parentAbs.Y);
+                    WordInstance.Size = ud2f(Bounds.X/parentAbs.X,TextSize/parentAbs.Y);
                     WordInstance.TextScaled = true;
                 else
-                    WordInstance.Size = UDim2.fromOffset(Bounds.X,TextSize);
+                    WordInstance.Size = ud2fo(Bounds.X,TextSize);
                 end
                 local ContentSize = List.AbsoluteContentSize;
                  if not self.Settings.Overfill and (--[[ContentSize.X > parentAbs.X or ]]ContentSize.Y > parentAbs.Y) then
