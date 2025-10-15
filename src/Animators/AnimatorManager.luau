@@ -196,6 +196,9 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             IncreaseCurrentCharacterPosition = true;
                             local Char = ss(Content.Word,(Content.PrevCharacterPosition or 0) +1 ,Content.CurrentCharacterPosition)
                             local Txt = Instance.new("TextLabel");
+                            if Content.Settings.CallStepped ~= nil then
+                                Content.Settings.CallStepped(Content,Char, Content.Word)
+                            end
                             Txt.Name = Char;
                             --Content.CurrentCharTxt = Txt;
                             Txt.Size = ud2f(1,1);

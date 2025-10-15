@@ -17,7 +17,9 @@ export type DefaultSettingsType = {
     StepFactor: number?;
     Amplitude: number?;
     StrokeColor: Color3?;
+    UseCanvas: boolean?;
     StrokeTransparency: number?;
+    CallStepped: (Content: PlayableType, Char: string, Word: string) -> ();
 };
 export type AnimatorType = {
     Letters: {TextLabel};
@@ -39,13 +41,13 @@ export type PlayableType = {
 };
 export type textPlusType = {
     new: (Content: string,DefaultSettings: DefaultSettingsType?) -> PlayableType;
-    Format: (Content: ContentType) -> ();
+    Format: (Content: FormatContentType | any) -> ();
     RegisterId: (Id: string, Content: any) -> (boolean?);
     UnRegisterId: (Id: string) -> ();
     RegisterStyle: (Id: string,Function: (Letter: TextLabel,Progress: number,Transparency: number, StrokeTransparency: number,Color: Color3,StrokeColor: Color3,Size: UDim2,Position: UDim2,Amplitude: number?,Reversing: boolean?) -> ()) -> ();
     UnRegisterStyle: (Id: string) -> ();
 }
-export type ContentType = {
+export type FormatContentType = {
     Image: string?,
     Font: (Enum.Font | string)?,
     FontFace: (Font | string)?,
@@ -59,6 +61,5 @@ export type ContentType = {
     Amplitude: number?,
     Speed: number?,
     StepFactor: number?;
-    UseCanvas: boolean?;
 }
 return nil;

@@ -18,7 +18,7 @@ local mt = {
         DefaultSettings.Scaled = (DefaultSettings.Scaled or DefaultSettings.Scale ~= nil) or false;
         DefaultSettings.XAlignment = DefaultSettings.XAlignment or Enum.TextXAlignment.Left;
         DefaultSettings.YAlignment = DefaultSettings.YAlignment or Enum.TextYAlignment.Top;
-        DefaultSettings.Scale = DefaultSettings.Scale or .35;
+        DefaultSettings.Scale = DefaultSettings.Scale --[[or .35]];
         DefaultSettings.UseCanvas = DefaultSettings.UseCanvas or false;
         --> default properties
 
@@ -118,7 +118,7 @@ local CustomFormating; CustomFormating = {
     end,
 };
 
-function mt.Format(Content: (Types.ContentType | any) )
+function mt.Format(Content: (Types.FormatContentType | any) )
     local firstType = tof(Content)
     if firstType == tabletype then
         local ret = emptystring;

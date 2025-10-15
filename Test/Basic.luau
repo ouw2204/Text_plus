@@ -17,11 +17,13 @@ return function (Target: GuiBase)
                 XAlignment = Enum.TextXAlignment.Center;
                 YAlignment = Enum.TextYAlignment.Center;
                 Scaled = true;
-                Scale = .5;
+                --Scale = .5;
                 Step =  .05;
+                CallStepped = function(Content, Char, Word)
+                    print("Stepped",Content, Char, Word)
+                end
             });
             Text:Play(Entity)
-            print(Text.Sequence)
         end
     }
 
