@@ -13,13 +13,13 @@ export type DefaultSettingsType = {
     Chunks: number?;
     Speed: number?;
     Scale: number?;
-    Style: number?;
+    Style: string | {string}?;
     StepFactor: number?;
     Amplitude: number?;
     StrokeColor: Color3?;
     UseCanvas: boolean?;
     StrokeTransparency: number?;
-    CallStepped: (Content: PlayableType, Char: string, Word: string) -> ();
+    CallStepped: (Content: PlayableType?, Char: string?, Word: string?) -> ()?;
 };
 export type AnimatorType = {
     Letters: {TextLabel};
@@ -57,9 +57,11 @@ export type FormatContentType = {
     Scale: number?,
     Size: number?;
     Transparency: number?,
-    Style: string?,
+    Style: string | {string}?,
     Amplitude: number?,
     Speed: number?,
     StepFactor: number?;
+    StrokeColor: Color3?;
+    StrokeTransparency: number?;
 }
 return nil;
