@@ -93,7 +93,23 @@ local CustomFormating; CustomFormating = {
                 if i ~= 1 then
                     re ..= ","
                 end
-                re ..= Style[i]
+                if tof(Style[i]) == tabletype then
+                    if Style[i].Style ~= nil or Style[i].style ~= nil then
+                        local re2 = opencurlybrackets;
+                        for index,value in pairs(Style[i]) do
+                            if index == "Style" or index == "style" then
+                                re2 ..= value
+                            else
+                                re2 ..= `,{index} = {value}`
+                            end
+                        end
+                        re2 ..= closecurlybrackets;
+                        re ..= re2;    
+                    end
+                else
+                    re ..= Style[i]
+                end
+                
             end
             re ..= closecurlybrackets
             return re

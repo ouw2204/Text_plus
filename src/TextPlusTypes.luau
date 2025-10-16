@@ -13,7 +13,7 @@ export type DefaultSettingsType = {
     Chunks: number?;
     Speed: number?;
     Scale: number?;
-    Style: string | {string}?;
+    Style: ({Style: string, ["repeat"]: number?,stepfactor: number?, looped: boolean?,reverse: boolean?, delaytime: number?,amplitude: number? } | string | {string})?,
     StepFactor: number?;
     Amplitude: number?;
     StrokeColor: Color3?;
@@ -36,12 +36,12 @@ export type PlayableType = {
     GetIdValue: (self: PlayableType, id: string) -> (string?);
     Print: (self: PlayableType, Parent: any) -> Vector2;
     Wait: (self: PlayableType) -> ();
-    Container: Frame | CanvasGroup | {List: UIListLayout?}?;
+    Container: (Frame | CanvasGroup | {List: UIListLayout?})?;
     GetContentSize: (self: PlayableType, Parent: any) -> Vector2?;
 };
 export type textPlusType = {
     new: (Content: string,DefaultSettings: DefaultSettingsType?) -> PlayableType;
-    Format: (Content: FormatContentType | any) -> ();
+    Format: (Content: (FormatContentType) ) -> ();
     RegisterId: (Id: string, Content: any) -> (boolean?);
     UnRegisterId: (Id: string) -> ();
     RegisterStyle: (Id: string,Function: (Letter: TextLabel,Progress: number,Transparency: number, StrokeTransparency: number,Color: Color3,StrokeColor: Color3,Size: UDim2,Position: UDim2,Amplitude: number?,Reversing: boolean?) -> ()) -> ();
@@ -57,7 +57,7 @@ export type FormatContentType = {
     Scale: number?,
     Size: number?;
     Transparency: number?,
-    Style: string | {string}?,
+    Style: ({Style: string, ["repeat"]: number?,stepfactor: number?, looped: boolean?,reverse: boolean?, delaytime: number?,amplitude: number? } | string | {string})?,
     Amplitude: number?,
     Speed: number?,
     StepFactor: number?;

@@ -12,7 +12,7 @@ return function (Target: GuiBase)
         BackgroundColor3 = Color3.fromRGB(0,0,0);
         function(Entity: GuiBase)
             -- do stuff
-            local Text = TextPlus.new("First style: [Rainbow](style={{Rainbow,Reverse=true,Repeat = 1},Shrink,{Rise,Reverse = true,Amplitude = 3,StepFactor = 2,DelayTime = .25}},Amplitude = 2,Chunks=3)",{
+            local Text = TextPlus.new("First style: [Rainbow]<style=((Rainbow,Reverse=true,Repeat = 1),Shrink,(Rise,Reverse = true,Amplitude = 3,StepFactor = 2,DelayTime = .25)),Amplitude = 2,Chunks=3> [Second style]<Style=((Rise, Reverse = true, Looped = true))>",{
                 --Size = 20;
                 XAlignment = Enum.TextXAlignment.Center;
                 YAlignment = Enum.TextYAlignment.Center;
@@ -26,6 +26,6 @@ return function (Target: GuiBase)
     }
 
     return function()
-        Thread:Clean();
+        Thread:Destroy();
     end
 end

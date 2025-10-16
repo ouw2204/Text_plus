@@ -195,7 +195,7 @@ function module:Update()
         if self.StyleIsTable then
             for x = self.StylesCount[found].Count,1,-1 do
                 if tof(self.StylesCount[found].Styles[x]) == tableType then
-                   local Completed = updateSingle(self.StylesCount[found].Styles[x].Style,found,self.step,self.transparency,self.stroketransparency,self.color,self.strokecolor,self.HasUpdate,i,self.Started,self.StepFactor,self.DefaultSize[i],self.DefaultPosition[i],self.Amplitude,self.StylesCount[found].Styles[x])
+                   local Completed = updateSingle(self.StylesCount[found].Styles[x].style,found,self.step,self.transparency,self.stroketransparency,self.color,self.strokecolor,self.HasUpdate,i,self.Started,self.StepFactor,self.DefaultSize[i],self.DefaultPosition[i],self.Amplitude,self.StylesCount[found].Styles[x])
                     if Completed then
                         self.StylesCount[found].Count -= 1;
                         table.remove(self.StylesCount[found].Styles,x)
@@ -248,7 +248,7 @@ function module:AddLetter(Letter: TextLabel)
         end;
         for i = self.StylesCount[Letter].Count,1,-1 do
             if tof(self.Style[i]) == tableType then
-                local Completed = updateSingle(self.StylesCount[Letter].Styles[i].Style,Letter,self.step,self.transparency,self.stroketransparency,self.color,self.strokecolor,self.HasUpdate,self.Index,self.Started,self.StepFactor,self.DefaultSize[self.Index],self.DefaultPosition[self.Index],self.Amplitude or 1,self.StylesCount[Letter].Styles[i])
+                local Completed = updateSingle(self.StylesCount[Letter].Styles[i].style,Letter,self.step,self.transparency,self.stroketransparency,self.color,self.strokecolor,self.HasUpdate,self.Index,self.Started,self.StepFactor,self.DefaultSize[self.Index],self.DefaultPosition[self.Index],self.Amplitude or 1,self.StylesCount[Letter].Styles[i])
                 if Completed then
                     self.StylesCount[Letter].Count -= 1;
                     table.remove(self.StylesCount[Letter].Styles,i)
@@ -291,13 +291,20 @@ return function(Content: Types.PlayableType,Word: TextLabel,Params: {[string]: n
         WordLength = #Word.Text/ (Content.Chunks or Content.Settings.Chunks or 1);
         Index = 0;
         Progress = 0;
-        Style = (Params ~= nil and Params.style) or Settings.Style;
+        Style = (Params ~= nil and Params.style) or Settings.Style or Settings.style;
         Started = os.clock();
     }
     tab.StyleIsTable = tof(tab.Style) == "table"
     if not tab.StyleIsTable then
         tab.Style = (Styles[tab.Style] ~= nil and tab.Style) or "Default"
     else
+        for i,v in ipairs(tab.Style) do
+            if tof(v) ~= "table" then continue end;
+            for  index,value in pairs(v) do
+                v[index] = nil;
+                v[string.lower(index)] = value;
+            end
+        end
         tab.nativeStyleCount = #tab.Style
         tab.StylesCount = {};
     end;
