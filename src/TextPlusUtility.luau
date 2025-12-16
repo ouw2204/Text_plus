@@ -258,53 +258,61 @@ end
 local TranslateWrapper = require(script.Parent.Packages.translatewrapper);
 
 module.Phase1 = function(input: string?, Content: any): {[any]: any}?
-	if input == nil then return end
-	local result = {n = 1}
-	local i = 1
-	local len = #input
+    if input == nil then return end
+    local result = {n = 1}
+    local i = 1
+    local len = #input
 
-	while i <= len do
-		local c = input:sub(i,i)
-		if c == "[" then
-			-- parse inside [...]
-			local depth = 1
-			local j = i + 1
-			local innerStart = j
-			while j <= len and depth > 0 do
-				local cj = input:sub(j,j)
-				if cj == "[" then
-					depth += 1
-				elseif cj == "]" then
-					depth -= 1
-				end
-				j += 1
-			end
+    while i <= len do
+        local c = input:sub(i,i)
+        
+        -- Check for the start of an escaped literal: "\[" or "[["
+        -- For simplicity and common practice, let's look for "\[" or "[[".
+        -- If we use '\[', we need to check the character *before* i.
 
-			local innerText = input:sub(innerStart, j-2 >= innerStart and j-2 or innerStart)
-			local after = j
+        -- Option A (Simpler): Check for '\['. If found, treat it as a literal '[', advance past the '\' and '['.
+        -- We'll adjust the 'plain text' collection loop instead for better performance.
+        
+        if c == "[" then
+            -- parse inside [...]
+            local depth = 1
+            local j = i + 1
+            local innerStart = j
+            while j <= len and depth > 0 do
+                local cj = input:sub(j,j)
+                if cj == "[" then
+                    depth += 1
+                elseif cj == "]" then
+                    depth -= 1
+                end
+                j += 1
+            end
 
-			-- check for <params>
-			local paramBlock = nil
-			if after <= len and input:sub(after,after) == "<" then
-				local k = after + 1
-				while k <= len and input:sub(k,k) ~= ">" do
-					k += 1
-				end
-				if k <= len then
-					paramBlock = input:sub(after+1, k-1)
-					after = k+1
-				end
-			end
+            local innerText = input:sub(innerStart, j-2 >= innerStart and j-2 or innerStart)
+            local after = j
 
-			-- add entry directly into result
+            -- check for <params>
+            local paramBlock = nil
+            if after <= len and input:sub(after,after) == "<" then
+                local k = after + 1
+                while k <= len and input:sub(k,k) ~= ">" do
+                    k += 1
+                end
+                if k <= len then
+                    paramBlock = input:sub(after+1, k-1)
+                    after = k+1
+                end
+            end
+
+            -- add entry directly into result
             local Parsed
             if paramBlock ~= nil then
                 Parsed = module.Phase2(paramBlock, Content)
             end
             if sf(innerText, "%<") or sf(innerText, "%[") then
                 local extracted1 = module.Phase1(innerText, Content)
-                for i = 1,extracted1.n do
-                    local v = extracted1[i]
+                for x = 1,extracted1.n do
+                    local v = extracted1[x]
                     if v == nil then continue end;
                     if tof(v) == tabletxt then
                         if Parsed ~= nil then
@@ -348,23 +356,38 @@ module.Phase1 = function(input: string?, Content: any): {[any]: any}?
                 end
                 result.n += 1
             end
-			
-			i = after
-		else
-			-- collect plain text until next [
-			local j = i
-			while j <= len and input:sub(j,j) ~= "[" do
-				j += 1
-			end
-			local text = input:sub(i, j-1)
-			if #text > 0 then
-				result[result.n] = TranslateWrapper.Translate(text)
-				result.n += 1
-			end
-			i = j
-		end
-	end
-	return result
+            
+            i = after
+        else
+            -- collect plain text until next [ or an escape sequence
+            local j = i
+            local text = ""
+            while j <= len do
+                local char = input:sub(j,j)
+                local nextChar = input:sub(j+1, j+1)
+                
+                if char == "\\" and nextChar == "[" then
+                    -- Found "\[", treat as a literal "["
+                    text = text .. "["
+                    j = j + 2 -- Skip both '\' and '['
+                elseif char == "[" then
+                    -- Found a non-escaped "[", break to start tag parsing
+                    break
+                else
+                    -- Found a normal character or non-bracket char
+                    text = text .. char
+                    j = j + 1
+                end
+            end
+            
+            if #text > 0 then
+                result[result.n] = TranslateWrapper.Translate(text)
+                result.n += 1
+            end
+            i = j
+        end
+    end
+    return result
 end
 
 

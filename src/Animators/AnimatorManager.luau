@@ -26,7 +26,7 @@ function Terminate(Content: Types.PlayableType)
         Content.__DeleteWhenDone = true;
     end
 end
-return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2)
+return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2, ScaledEligible: boolean)
     if (Content.LastRunSuccessful == false and Content.__Broke == nil) or Content == nil or Content.Container == nil or Content.Container.Parent == nil then
         --warn(`Something went wrong while running Text+ so the programmed was terminated.`)
         Content:Destroy()
@@ -108,7 +108,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                                 if Content.Params.img ~= nil then
                                     local Image = Instance.new("ImageLabel");
                                     Image.Name = "img - "..Content.Params.img
-                                    Image.Size = if Content.Settings.Scaled then ud2f(TextSize/parentAbs.X,TextSize/parentAbs.Y) else ud2fo(TextSize,TextSize)
+                                    Image.Size = if Content.Settings.Scaled and ScaledEligible then ud2f(TextSize/parentAbs.X,TextSize/parentAbs.Y) else ud2fo(TextSize,TextSize)
                                     Image.Parent = Content.Container;
                                     Image.BackgroundTransparency = 1;
                                     Image.Image = "rbxassetid://"..Content.Params.img
@@ -154,7 +154,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             end
                             WordInstance.TextColor3 = Content.Settings.Color or Color3.new(1,1,1);
                             local Bounds = WordInstance.TextBounds;
-                            if Content.Settings.Scaled then
+                            if Content.Settings.Scaled and ScaledEligible then
                                 WordInstance.Size = ud2f(Bounds.X/parentAbs.X,TextSize/parentAbs.Y);
                                 WordInstance.TextScaled = true;
                             else

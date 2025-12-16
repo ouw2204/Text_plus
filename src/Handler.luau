@@ -18,8 +18,11 @@ local ListName = "List";
 local ud2f = UDim2.fromScale;
 local ud2fo = UDim2.fromOffset;
 
+local v2zero = Vector2.new(0,0)
 function module:GetContentSize(ParentFrame: Frame)
-    if ParentFrame == nil then return end;
+    if ParentFrame == nil  then return end;
+    if ParentFrame.Parent == nil or ParentFrame.Parent.Parent == nil then warn("Parent frame is not parented correctely") return v2zero end;
+    if  ParentFrame.AbsoluteSize.Y <= 0 then warn("Parent frame is too small") return v2zero end;
     --< Get Initial Text Size
     if self.RawContent ~= nil and self.Sequence == nil then
         self.Sequence = Utility.Phase1(self.RawContent,self);
@@ -34,13 +37,14 @@ function module:GetContentSize(ParentFrame: Frame)
     Container.Size =  ud2f(1,1) --ud2fo(parentAbs.X,parentAbs.Y); --(isBillBoard and ud2f(1,1)) or ud2fo(parentAbs.X,parentAbs.Y);
     Container.BackgroundTransparency = 1;
     Container.Parent = ParentFrame;
+    local ScaledEligible = ParentFrame.AbsoluteSize.X >0
     local List = Instance.new"UIListLayout"
     List.Parent = Container;
     List.Name = "List";
     List.SortOrder = Enum.SortOrder.LayoutOrder;
     self:ApplyAlignments(Container, List)
     List.FillDirection = Enum.FillDirection.Horizontal;
-    List.Wraps = self.Settings.Wrapped or false;
+    List.Wraps = self.Settings.Wrapped;
     for _,v in ipairs(self.Sequence) do
         local istable = tof(v) == tabletxt
         local Split;
@@ -72,7 +76,7 @@ function module:GetContentSize(ParentFrame: Frame)
                     if img ~= nil then
                         local Image = Instance.new("ImageLabel");
                         Image.Name = "img - "..img
-                        Image.Size = if self.Settings.Scaled then ud2f(TextSize/parentAbs.X,TextSize/parentAbs.Y) else ud2fo(TextSize,TextSize)
+                        Image.Size = if self.Settings.Scaled and ScaledEligible then ud2f(TextSize/parentAbs.X,TextSize/parentAbs.Y) else ud2fo(TextSize,TextSize)
                         Image.ImageTransparency = 1;
                         Image.Parent = Container;
                         Image.BackgroundTransparency = 1;
@@ -108,7 +112,7 @@ function module:GetContentSize(ParentFrame: Frame)
                 WordInstance.Font = font or Defaults.Font;
             end
             local Bounds = WordInstance.TextBounds;
-            if self.Settings.Scaled then
+            if self.Settings.Scaled and ScaledEligible then
                 WordInstance.Size = ud2f(Bounds.X/parentAbs.X,TextSize/parentAbs.Y);
                 WordInstance.TextScaled = true;
             else
@@ -154,6 +158,10 @@ function module:ApplyAlignments(Container: any, List: UIListLayout)
     end
 end
 function module:Play(ParentFrame: Frame)
+    if ParentFrame == nil then return end;
+    if ParentFrame.Parent == nil or ParentFrame.Parent.Parent == nil then warn("Parent frame is not parented correctely") return self end;
+    if  ParentFrame.AbsoluteSize.Y <= 0 then warn("Parent frame is too small") return self end;
+
     self.__playing = true;
     if self.RawContent ~= nil and self.Sequence == nil then
         self.Sequence = Utility.Phase1(self.RawContent,self);
@@ -168,7 +176,6 @@ function module:Play(ParentFrame: Frame)
         self.Container:Destroy();
     end
 
-    local parentAbs = ParentFrame.AbsoluteSize
     self.Container = (self.Settings.UseCanvas and Instance.new("CanvasGroup")) or Instance.new"Frame";
     self.Container.Name = "TextPlusTextHolder";
     self.Container.Size =  ud2f(1,1) --ud2fo(parentAbs.X,parentAbs.Y); --(isBillBoard and ud2f(1,1)) or ud2fo(parentAbs.X,parentAbs.Y);
@@ -185,13 +192,18 @@ function module:Play(ParentFrame: Frame)
     self:ApplyAlignments(self.Container, List)
 
     List.FillDirection = Enum.FillDirection.Horizontal;
-    List.Wraps = self.Settings.Wrapped or false;
+    List.Wraps = self.Settings.Wrapped;
     self.CurrentIndex = 1;
     self.CurrentIndexPosition = 1;
     self.CurrentCharacterPosition = 1;
-
+    local parentAbs = nil;
+    local ScaledEligible
     self.RenderStep = RunService.Heartbeat:Connect(function(waitTime)
-        AnimatorManager(self,waitTime,parentAbs)
+        if parentAbs == nil then
+            parentAbs = ParentFrame.AbsoluteSize
+            ScaledEligible = ParentFrame.AbsoluteSize.X >0
+        end
+        AnimatorManager(self,waitTime,parentAbs,ScaledEligible)
     end)
     
    return self,self.Container;
@@ -284,6 +296,10 @@ function module:Wait()
 end
 function module:Print(ParentFrame: Frame)
     if ParentFrame == nil then return end;
+    if ParentFrame.Parent == nil or ParentFrame.Parent.Parent == nil then warn("Parent frame is not parented correctely") return v2zero end;
+    if  ParentFrame.AbsoluteSize.Y <= 0 then warn("Parent frame is too small") return v2zero end;
+    local ScaledEligible = ParentFrame.AbsoluteSize.X >0
+
     if self.__playing then
         self:Stop()
     end;
@@ -316,7 +332,7 @@ function module:Print(ParentFrame: Frame)
     self:ApplyAlignments(self.Container, List)
 
     List.FillDirection = Enum.FillDirection.Horizontal;
-    List.Wraps = self.Settings.Wrapped or false;
+    List.Wraps = self.Settings.Wrapped;
     if self.RawContent ~= nil and self.Sequence == nil then
         self.Sequence = Utility.Phase1(self.RawContent,self);
         self.SequenceCount = #self.Sequence
@@ -359,7 +375,7 @@ function module:Print(ParentFrame: Frame)
                         if img ~= nil then
                             local Image = Instance.new("ImageLabel");
                             Image.Name = "img - "..img
-                            Image.Size = if self.Settings.Scaled then ud2f(TextSize/parentAbs.X,TextSize/parentAbs.Y) else ud2fo(TextSize,TextSize)
+                            Image.Size = if self.Settings.Scaled and ScaledEligible then ud2f(TextSize/parentAbs.X,TextSize/parentAbs.Y) else ud2fo(TextSize,TextSize)
                             Image.Parent = self.Container;
                             Image.BackgroundTransparency = 1;
                             Image.Image = "rbxassetid://"..img
@@ -397,7 +413,7 @@ function module:Print(ParentFrame: Frame)
                 end
                 WordInstance.TextColor3 = Color or Defaults.Color;
                 local Bounds = WordInstance.TextBounds;
-                if self.Settings.Scaled then
+                if self.Settings.Scaled and ScaledEligible then
                     WordInstance.Size = ud2f(Bounds.X/parentAbs.X,TextSize/parentAbs.Y);
                     WordInstance.TextScaled = true;
                 else

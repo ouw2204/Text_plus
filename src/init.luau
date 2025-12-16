@@ -1,19 +1,32 @@
+--[=[
+    @class TextPlus
+    Main module for Text+
+]=]
 local Types = require(script.TextPlusTypes)
 local MainMetatable = require(script.Handler)
 local Storage = require(script.Storage)
 local Styles = require(script.Animators.AnimatorClass.Styles)
+
+--[=[
+    @function new
+    @within TextPlus
+    @param Content string
+    @param DefaultSettings Types.DefaultSettingsType?
+    @return TextPlus.TextPlusObject
+    Creates a new Text+ object
+]=]
 local mt = {
-    new = function(Content: string,DefaultSettings: Types.DefaultSettingsType)
+    new = function(Content: string,DefaultSettings: Types.DefaultSettingsType?)
         if Content == nil then return end;
         if DefaultSettings == nil then DefaultSettings = {}:: Types.DefaultSettingsType end;
 
         --< default properties
         DefaultSettings.Size = DefaultSettings.Size or 14;
         DefaultSettings.Color = DefaultSettings.Color or Color3.fromRGB(255,255,255);
-        DefaultSettings.Wrapped = DefaultSettings.Wrapped or true;
+        DefaultSettings.Wrapped = DefaultSettings.Wrapped;
         DefaultSettings.Font = DefaultSettings.Font or Enum.Font.SourceSans;
         DefaultSettings.FontFace = DefaultSettings.FontFace or nil;
-        DefaultSettings.Overfill = DefaultSettings.Overfill or false;
+        DefaultSettings.Overfill = DefaultSettings.Overfill;
         DefaultSettings.Transparency = DefaultSettings.Transparency or 0;
         DefaultSettings.Scaled = (DefaultSettings.Scaled or DefaultSettings.Scale ~= nil) or false;
         DefaultSettings.XAlignment = DefaultSettings.XAlignment or Enum.TextXAlignment.Left;
@@ -32,6 +45,13 @@ local mt = {
         return Main
     end
 }
+--[=[
+    @within TextPlus
+    @param Id string
+    @param Content any
+    @return boolean?
+    Lets you store values/content you can reuse with Text+ syntax
+]=]
 function  mt.RegisterId(Id: string,Content: any)
     if Id == nil or Content == nil then 
         return
@@ -39,16 +59,33 @@ function  mt.RegisterId(Id: string,Content: any)
     Storage.IdsStorage[Id] = Content;
     return true
 end
+--[=[
+    Unregisters an Id
+    @within TextPlus
+    @param Id string
+]=]
 function  mt.UnRegisterId(Id: string)
     if Id == nil then 
         return
     end
     Storage.IdsStorage[Id] = nil;
 end
+
+--[=[
+    @within TextPlus
+    @param Id string
+    @param Function (Letter: TextLabel,Progress: number,Transparency: number, StrokeTransparency: number, Color: Color3, StrokeColor: Color3, Size: UDim2, Position: UDim2, Amplitude: number?, Reversing: boolean?) -> ()
+    Registers a custom style/animation function
+]=]
 function mt.RegisterStyle(Id: string,Function: (Letter: TextLabel,Progress: number,Transparency: number, StrokeTransparency: number,Color: Color3,StrokeColor: Color3,Size: UDim2,Position: UDim2,Amplitude: number?,Reversing: boolean?) -> ())
     if Id == nil or Function == nil then return end;
     Styles[Id] = Function;
 end
+--[=[
+    @within TextPlus
+    @param Id string
+    Unregisters a custom style/animation function
+]=]
 function mt.UnRegisterStyle(Id: string)
     if Id == nil then return end;
     Styles[Id] = nil;
@@ -133,8 +170,13 @@ local CustomFormating; CustomFormating = {
         return EnumItem.Name;
     end,
 };
-
-function mt.Format(Content: (Types.FormatContentType | any) )
+--[=[
+    @within TextPlus
+    @param Content any
+    @return string
+    Formats content into a string suitable for Text+
+]=]
+function mt.Format(Content: any )
     local firstType = tof(Content)
     if firstType == tabletype then
         local ret = emptystring;
