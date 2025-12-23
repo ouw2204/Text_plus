@@ -23,7 +23,7 @@ local mt = {
         --< default properties
         DefaultSettings.Size = DefaultSettings.Size or 14;
         DefaultSettings.Color = DefaultSettings.Color or Color3.fromRGB(255,255,255);
-        DefaultSettings.Wrapped = DefaultSettings.Wrapped;
+        DefaultSettings.Wrapped = (DefaultSettings.Wrapped == nil and true) or DefaultSettings.Wrapped ;
         DefaultSettings.Font = DefaultSettings.Font or Enum.Font.SourceSans;
         DefaultSettings.FontFace = DefaultSettings.FontFace or nil;
         DefaultSettings.Overfill = DefaultSettings.Overfill;

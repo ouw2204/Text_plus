@@ -220,6 +220,33 @@ function module:GetIdValue(Id: string)
     end
     return nil;
 end
+local PropsToCopy = {
+    TextSize = "Size",
+    TextColor3 = "Color",
+    TextTransparency = "Transparency",
+    TextStrokeColor3 = "StrokeColor",
+    TextStrokeTransparency = "StrokeTransparency",
+    FontFace = "FontFace",
+    TextXAlignment = "XAlignment",
+    TextYAlignment = "YAlignment",
+}
+
+local tf = table.find
+function module:From(TextLabel: TextLabel, Exclusions: (string | {string})?)
+    
+    if TextLabel == nil or TextLabel.ClassName ~= "TextLabel" then return self end;
+    local ExclusionsIsTable = tof(Exclusions) == tabletxt
+    for i,v in pairs(PropsToCopy) do
+        if Exclusions ~= nil then
+            if Exclusions == v or Exclusions == i then continue end;
+            if ExclusionsIsTable and (tf(Exclusions,v) ~= nil or tf(Exclusions,i) ~= nil) then continue end;
+
+        end
+        self.Settings[v] = TextLabel[i]
+    end
+
+    return self;
+end
 function module:Stop()
     if self.RenderStep ~= nil then
         self.RenderStep:Disconnect();
