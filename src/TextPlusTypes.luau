@@ -19,7 +19,9 @@ export type DefaultSettingsType = {
     StrokeColor: Color3?;
     UseCanvas: boolean?;
     StrokeTransparency: number?;
-    CallStepped: (Content: PlayableType?, Char: string?, Word: string?) -> ()?;
+    LetterStepped: (Content: PlayableType?, Char: string?, Word: string?) -> ()?;
+    OnFinished: (Content: PlayableType?) -> ()?;
+    WordStepped: (Content: PlayableType?, Word: string?) -> ()?;
 };
 export type AnimatorType = {
     Letters: {TextLabel};

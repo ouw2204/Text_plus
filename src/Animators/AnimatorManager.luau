@@ -169,6 +169,10 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                                 Terminate(Content);
                                 Content.CurrentAnimation = nil;
                                 return
+                            else
+                                if Content.Settings.WordStepped ~= nil then
+                                    Content.Settings.WordStepped(Content, Content.Word)
+                                end
                             end
                             if string.match(Content.Word,"%s+") == Content.Word then
                                 Content.Word = nilset;
@@ -196,8 +200,8 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             IncreaseCurrentCharacterPosition = true;
                             local Char = ss(Content.Word,(Content.PrevCharacterPosition or 0) +1 ,Content.CurrentCharacterPosition)
                             local Txt = Instance.new("TextLabel");
-                            if Content.Settings.CallStepped ~= nil then
-                                Content.Settings.CallStepped(Content,Char, Content.Word)
+                            if Content.Settings.LetterStepped ~= nil then
+                                Content.Settings.LetterStepped(Content,Char, Content.Word)
                             end
                             Txt.Name = Char;
                             --Content.CurrentCharTxt = Txt;
@@ -299,8 +303,13 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                 Animation:Update()
             end
         end
-    elseif Content.__DeleteWhenDone then
-        Content:Destroy();
+    else
+        if Content.Settings ~= nil and Content.Settings.OnFinished ~= nil then
+            Content.Settings.OnFinished(Content)
+        end
+        if Content.__DeleteWhenDone then
+            Content:Destroy();
+        end
     end
     Content.LastRunSuccessful = true;
 end

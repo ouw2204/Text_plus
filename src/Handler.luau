@@ -256,6 +256,11 @@ function module:Stop()
        self.SizeChangedConnection:Disconnect()
        self.SizeChangedConnection = nil; 
     end
+    if self.__playing then
+       if self.Settings.OnFinished ~= nil then
+            self.Settings.OnFinished(self);
+       end
+    end
     self.__playing = nil;
     if self.Animations ~= nil then
         for i = #self.Animations,1,-1 do
@@ -290,10 +295,7 @@ function module:Stop()
 end
 local tc = table.clear
 function module:Destroy()
-    if self.__routine ~= nil then
-        coroutine.resume(self.__routine)
-        self.__routine = nil;
-    end
+    self:__removeRoutines();
     self:Stop();
     self.Container = nil;
     self.ListObject = nil;
@@ -311,10 +313,38 @@ function module:Destroy()
     tc(self)
 end
 
-
+local threadtxt = "thread"
+function module:__addRoutine()
+    local newThread: thread = coroutine.running()
+    if self.__routine ~= nil then
+        if typeof(self.__routine) == threadtxt  then
+            warn(1111)
+            self.__routine = {
+                self.__routine,
+            }
+        end
+        table.insert(self.__routine,newThread)
+    else
+        self.__routine = newThread;
+    end
+    return newThread;
+end
+function module:__removeRoutines()
+    if self.__routine ~= nil then
+        if tof(self.__routine) == threadtxt then
+            coroutine.resume(self.__routine)
+        else
+            for i = #self.__routine,1,-1 do
+                coroutine.resume(self.__routine[i])
+            end
+        end
+        self.__routine = nil;
+        
+    end
+end
 function module:Wait()
     if self.__playing then
-        self.__routine = coroutine.running()
+        self:__addRoutine()
         coroutine.yield()
     else
         warn("Text+ Writer is not currently running so the :Wait function can not be used.")
@@ -325,6 +355,7 @@ function module:Print(ParentFrame: Frame)
     if ParentFrame == nil then return end;
     if ParentFrame.Parent == nil or ParentFrame.Parent.Parent == nil then warn("Parent frame is not parented correctely") return v2zero end;
     if  ParentFrame.AbsoluteSize.Y <= 0 then warn("Parent frame is too small") return v2zero end;
+    self:__removeRoutines();
     local ScaledEligible = ParentFrame.AbsoluteSize.X >0
 
     if self.__playing then
