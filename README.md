@@ -2,17 +2,33 @@
 
 A Roblox rich text module by MountainDouw
 
-How to Download
+## Installation
 
-## Roblox
+### Wally
 
+Add to your `wally.toml`:
 
-## Wally
+```toml
+[dependencies]
+textplus = "mountaindouw/textplus@1.1.6"
+```
 
+Then run:
 
-## Github
-Check the [Release pages](https://github.com/mountaindouw/Text_plus/releases) and download the latest version.
+```bash
+wally install
+```
+
+### GitHub
+
+Download the latest release from the [GitHub Releases page](https://github.com/mountaindouw/Text_plus/releases).
+
+### Roblox
+
+Get Text+ from the Roblox Creator Marketplace.
 
 ## Update Log
+### v1.1.6
+
 ### v1.1.4
 Version at the publication of this documentation

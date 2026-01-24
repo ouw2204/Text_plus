@@ -1,0 +1,27 @@
+[docgen]
+classOrder = ["TextPlus"]
+
+[docgen.changelog]
+enabled = false
+
+[home]
+enabled = true
+includeReadme = true
+gettingStartedUrl = "Docs/intro"
+title = "Text+"
+tagline = "A rich text rendering module for Roblox"
+
+[[home.features]]
+title = "Animated Text"
+description = "Built-in animation styles like Fade, Pop, Rise, Drop, Wiggle, Shrink, and Rainbow"
+
+[[home.features]]
+title = "Rich Styling"
+description = "Customize colors, fonts, sizes, transparency, and stroke effects"
+
+[[home.features]]
+title = "ID System"
+description = "Register reusable content and dynamic values"
+
+[git]
+defaultBranch = "main"
