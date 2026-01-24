@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdocs=self.webpackChunkdocs||[]).push([[405],{4410:s=>{s.exports=JSON.parse('{"sourceUrl":"https://github.com/mountaindouw/Text_plus/blob/master","baseUrl":"/Text_plus/","classOrder":[],"apiCategories":[]}')}}]);
