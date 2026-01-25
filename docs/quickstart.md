@@ -102,7 +102,7 @@ local text = TextPlus.new("Hello World!", {
 | Amplitude | number | 1 | Variable used by some animations to control effect intensity (e.g. Y offset, size change) |
 | Overfill | boolean | nil | Allow text to extend beyond container bounds |
 | UseCanvas | boolean | false | Use CanvasGroup instead of Frame for better visual effects |
-| ContentScaled | boolean | true | Scale individual letters to fit within word bounds |
+| ContentScaled | boolean | true | Scale the content to shift with the parent size |
 | LetterStepped | function | nil | Called with (content, char, word) when each letter appears |
 | WordStepped | function | nil | Called with (content, word) when each word appears |
 | OnFinished | function | nil | Called with (content) when animation completes |

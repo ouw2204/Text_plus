@@ -29,6 +29,6 @@ Get Text+ from the Roblox Creator Marketplace.
 
 ## Update Log
 ### v1.1.7
-- Added ScaleContent setting
+- Added ContentScaled setting
 ### v1.1.4
 - Version at the publication of this documentation
