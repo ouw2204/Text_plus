@@ -67,10 +67,13 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
             Content.Count = Count;
         end
         
-        local TextSize = Content.CurrentSize or Content.Settings.Size;
-        if Content.Settings.Scaled then
-            TextSize = min(min(parentAbs.Y,100)* (Content.CurrentScale or Content.Settings.Scale or 1),100)
-        end
+        local TextSize = Content.TextSizeInit
+        if TextSize == nil then
+            TextSize = Content.CurrentSize or Content.Settings.Size;
+            if Content.Settings.Scaled then
+                TextSize = min(min(parentAbs.Y,100)* (Content.CurrentScale or Content.Settings.Scale or 1),100)
+            end
+        end;
         
         --< validators
         if Content.Count == nil or Content.Count == 0 then

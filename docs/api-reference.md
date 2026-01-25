@@ -355,29 +355,30 @@ Settings table for `TextPlus.new()`.
 
 ```lua
 type DefaultSettingsType = {
-    Size: number?,                    -- Text size (default: 14)
+    Size: number?,                    -- Text size in pixels (default: 14)
     Color: Color3?,                   -- Text color (default: white)
-    Wrapped: boolean?,                -- Enable wrapping (default: true)
+    Wrapped: boolean?,                -- Enable text wrapping to next line (default: true)
     Font: Enum.Font?,                 -- Font enum (default: SourceSans)
-    FontFace: Font?,                  -- Custom FontFace
-    Overfill: boolean?,               -- Allow overflow
-    Transparency: number?,            -- Text transparency (default: 0)
-    Scaled: boolean?,                 -- Scale to container (auto-enabled if Scale is set)
-    XAlignment: Enum.TextXAlignment?, -- Horizontal align (default: Left)
-    YAlignment: Enum.TextYAlignment?, -- Vertical align (default: Top)
-    Step: number?,                    -- Time between characters (default: 0.015)
-    Chunks: number?,                  -- Characters per step (default: 1)
-    Speed: number?,                   -- Animation speed multiplier (default: 1)
-    Scale: number?,                   -- Scale factor (auto-enables Scaled)
-    Style: StyleType?,                -- Animation style
-    StepFactor: number?,              -- Animation step factor (default: 1)
-    Amplitude: number?,               -- Animation amplitude (default: 1)
-    StrokeColor: Color3?,             -- Stroke color (default: black)
-    UseCanvas: boolean?,              -- Use CanvasGroup (default: false)
-    StrokeTransparency: number?,      -- Stroke transparency (default: 1 = invisible)
-    LetterStepped: ((Content, Char, Word) -> ())?, -- Letter callback
-    OnFinished: ((Content) -> ())?,   -- Completion callback
-    WordStepped: ((Content, Word) -> ())?,  -- Word callback
+    FontFace: Font?,                  -- Custom FontFace for advanced fonts
+    Overfill: boolean?,               -- Allow text beyond container bounds
+    Transparency: number?,            -- Text transparency 0-1 (default: 0 = opaque)
+    Scaled: boolean?,                 -- Scale based on container height (auto-enabled if Scale set)
+    XAlignment: Enum.TextXAlignment?, -- Horizontal alignment (default: Left)
+    YAlignment: Enum.TextYAlignment?, -- Vertical alignment (default: Top)
+    Step: number?,                    -- Base delay between character reveals in seconds (default: 0.015)
+    Chunks: number?,                  -- Characters revealed per step (default: 1)
+    Speed: number?,                   -- Typewriter speed multiplier, higher = faster (default: 1)
+    Scale: number?,                   -- Text size as % of container height (auto-enables Scaled)
+    Style: StyleType?,                -- Animation style name or config table
+    StepFactor: number?,              -- Animation progress speed multiplier (default: 1)
+    Amplitude: number?,               -- Variable for animation intensity (Y offset, size, etc) (default: 1)
+    StrokeColor: Color3?,             -- Text outline color (default: black)
+    UseCanvas: boolean?,              -- Use CanvasGroup for better effects (default: false)
+    StrokeTransparency: number?,      -- Stroke visibility 0-1 (default: 1 = invisible)
+    ContentScaled: boolean?,          -- Scale letters to fit word bounds (default: true)
+    LetterStepped: ((Content, Char, Word) -> ())?, -- Called when each letter appears
+    OnFinished: ((Content) -> ())?,   -- Called when animation completes
+    WordStepped: ((Content, Word) -> ())?,  -- Called when each word appears
 }
 ```
 

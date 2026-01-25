@@ -22,6 +22,7 @@ export type DefaultSettingsType = {
     LetterStepped: (Content: PlayableType?, Char: string?, Word: string?) -> ()?;
     OnFinished: (Content: PlayableType?) -> ()?;
     WordStepped: (Content: PlayableType?, Word: string?) -> ()?;
+    ContentScaled: boolean?;
 };
 export type AnimatorType = {
     Letters: {TextLabel};

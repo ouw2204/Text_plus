@@ -10,7 +10,7 @@ Add to your `wally.toml`:
 
 ```toml
 [dependencies]
-textplus = "mountaindouw/textplus@1.1.6"
+textplus = "mountaindouw/textplus@1.1.7"
 ```
 
 Then run:
@@ -28,7 +28,7 @@ Download the latest release from the [GitHub Releases page](https://github.com/m
 Get Text+ from the Roblox Creator Marketplace.
 
 ## Update Log
-### v1.1.6
-
+### v1.1.7
+- Added ScaleContent setting
 ### v1.1.4
-Version at the publication of this documentation
+- Version at the publication of this documentation

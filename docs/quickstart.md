@@ -86,22 +86,26 @@ local text = TextPlus.new("Hello World!", {
 | Color | Color3 | White | Text color |
 | Font | Enum.Font | SourceSans | Font enum |
 | FontFace | Font | nil | FontFace for custom fonts |
-| Transparency | number | 0 | Text transparency (0-1) |
-| Wrapped | boolean | true | Enable text wrapping |
-| Scaled | boolean | false | Scale text to container (auto-enabled if Scale is set) |
-| Scale | number | nil | Scale factor (auto-enables Scaled) |
-| XAlignment | TextXAlignment | Left | Horizontal alignment |
-| YAlignment | TextYAlignment | Top | Vertical alignment |
-| Speed | number | 1 | Animation speed multiplier |
-| Step | number | 0.015 | Time between characters (seconds) |
-| Chunks | number | 1 | Characters revealed per step |
-| Style | string/table | nil | Animation style |
-| StrokeColor | Color3 | Black | Text stroke color |
-| StrokeTransparency | number | 1 | Stroke transparency (1 = invisible) |
-| StepFactor | number | 1 | Animation step factor |
-| Amplitude | number | 1 | Animation amplitude |
-| Overfill | boolean | nil | Allow text overflow |
-| UseCanvas | boolean | false | Use CanvasGroup container |
+| Transparency | number | 0 | Text transparency (0 = opaque, 1 = invisible) |
+| Wrapped | boolean | true | Enable text wrapping to next line |
+| Scaled | boolean | false | Scale text based on container height (auto-enabled if Scale is set) |
+| Scale | number | nil | Text size as percentage of container height (0-1), auto-enables Scaled |
+| XAlignment | TextXAlignment | Left | Horizontal text alignment |
+| YAlignment | TextYAlignment | Top | Vertical text alignment |
+| Speed | number | 1 | Multiplier for animation speed (higher = faster typewriter effect) |
+| Step | number | 0.015 | Base time delay between each character reveal (seconds) |
+| Chunks | number | 1 | Number of characters revealed at once per step |
+| Style | string/table | nil | Animation style name or configuration table |
+| StrokeColor | Color3 | Black | Color of text outline/stroke |
+| StrokeTransparency | number | 1 | Stroke visibility (0 = visible, 1 = invisible) |
+| StepFactor | number | 1 | Multiplier for animation progress speed within styles |
+| Amplitude | number | 1 | Variable used by some animations to control effect intensity (e.g. Y offset, size change) |
+| Overfill | boolean | nil | Allow text to extend beyond container bounds |
+| UseCanvas | boolean | false | Use CanvasGroup instead of Frame for better visual effects |
+| ContentScaled | boolean | true | Scale individual letters to fit within word bounds |
+| LetterStepped | function | nil | Called with (content, char, word) when each letter appears |
+| WordStepped | function | nil | Called with (content, word) when each word appears |
+| OnFinished | function | nil | Called with (content) when animation completes |
 
 ## Scaled Text
 

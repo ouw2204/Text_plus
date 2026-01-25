@@ -34,7 +34,7 @@ function module:GetContentSize(ParentFrame: Frame)
     local parentAbs = ParentFrame.AbsoluteSize
     local Container = Instance.new("Frame");
     Container.Name = "TextPlusTextHolder";
-    Container.Size =  ud2f(1,1) --ud2fo(parentAbs.X,parentAbs.Y); --(isBillBoard and ud2f(1,1)) or ud2fo(parentAbs.X,parentAbs.Y);
+    Container.Size =  (self.Settings.ContentScaled and ud2f(1,1)) or UDim2.fromOffset(parentAbs.X,parentAbs.Y);
     Container.BackgroundTransparency = 1;
     Container.Parent = ParentFrame;
     local ScaledEligible = ParentFrame.AbsoluteSize.X >0
@@ -178,7 +178,9 @@ function module:Play(ParentFrame: Frame)
 
     self.Container = (self.Settings.UseCanvas and Instance.new("CanvasGroup")) or Instance.new"Frame";
     self.Container.Name = "TextPlusTextHolder";
-    self.Container.Size =  ud2f(1,1) --ud2fo(parentAbs.X,parentAbs.Y); --(isBillBoard and ud2f(1,1)) or ud2fo(parentAbs.X,parentAbs.Y);
+    if self.Settings.ContentScaled then
+        self.Container.Size =  ud2f(1,1)
+    end;
     self.Container.BackgroundTransparency = 1;
     self.Container.Parent = ParentFrame;
     local List = Instance.new"UIListLayout"
@@ -202,6 +204,9 @@ function module:Play(ParentFrame: Frame)
         if parentAbs == nil then
             parentAbs = ParentFrame.AbsoluteSize
             ScaledEligible = ParentFrame.AbsoluteSize.X >0
+            if not self.Settings.ContentScaled then
+                self.Container.Size = UDim2.fromOffset(parentAbs.X,parentAbs.Y)
+            end
         end
         AnimatorManager(self,waitTime,parentAbs,ScaledEligible)
     end)
@@ -375,7 +380,7 @@ function module:Print(ParentFrame: Frame)
     if self.Container == nil then
         self.Container = (self.Settings.UseCanvas and Instance.new("CanvasGroup")) or Instance.new"Frame";
         self.Container.Name = "TextPlusTextHolder";
-        self.Container.Size = ud2f(1,1);
+        self.Container.Size = (self.Settings.ContentScaled and ud2f(1,1)) or UDim2.fromOffset(parentAbs.X,parentAbs.Y);
         self.Container.BackgroundTransparency = 1;
         self.Container.Parent = ParentFrame;
         List = Instance.new"UIListLayout"

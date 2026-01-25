@@ -33,6 +33,7 @@ local mt = {
         DefaultSettings.YAlignment = DefaultSettings.YAlignment or Enum.TextYAlignment.Top;
         DefaultSettings.Scale = DefaultSettings.Scale --[[or .35]];
         DefaultSettings.UseCanvas = DefaultSettings.UseCanvas or false;
+        DefaultSettings.ContentScaled = (DefaultSettings.ContentScaled == nil and true) or DefaultSettings.ContentScaled;
         --> default properties
 
         Content = Content or "";

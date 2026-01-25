@@ -4,7 +4,7 @@ registry = "test"
 
 [[package]]
 name = "mountaindouw/textplus"
-version = "1.1.6"
+version = "1.1.7"
 dependencies = [["translatewrapper", "prophetouw/translatewrapper@1.0.6"]]
 
 [[package]]
