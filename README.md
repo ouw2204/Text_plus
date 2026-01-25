@@ -9,7 +9,6 @@ A Roblox rich text module by MountainDouw
 Add to your `wally.toml`:
 
 ```toml
-[dependencies]
 textplus = "mountaindouw/textplus@1.1.7"
 ```
 
