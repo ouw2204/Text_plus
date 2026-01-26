@@ -5,5 +5,5 @@ registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 
 [dependencies]
-# faye = "mountaindouw/faye@2.1.2"
+# faye = "mountaindouw/faye@2.1.5"
 translatewrapper = "prophetouw/translatewrapper@1.0.6"
