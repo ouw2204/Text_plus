@@ -9,7 +9,7 @@ A Roblox rich text module by MountainDouw
 Add to your `wally.toml`:
 
 ```toml
-textplus = "mountaindouw/textplus@1.1.8"
+textplus = "mountaindouw/textplus@1.1.9"
 ```
 
 Then run:
@@ -27,7 +27,7 @@ Download the latest release from the [GitHub Releases page](https://github.com/m
 Get Text+ from the Roblox Creator Marketplace.
 
 ## Update Log
-### v1.1.8
+### v1.1.9
 - Fixed some transparency bugs
 - Added ContentScaled setting
 ### v1.1.4

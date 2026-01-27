@@ -305,9 +305,11 @@ function module:Destroy()
     self:Stop();
     self.Container = nil;
     self.ListObject = nil;
-    for i = #self.Sequence,1,-1 do
-        self.Sequence[i] = nil;
-    end
+    if self.Sequence ~= nil then
+        for i = #self.Sequence,1,-1 do
+            self.Sequence[i] = nil;
+        end
+    end;
     self.Sequence = nil;
     self.SequenceCount = nil;
 

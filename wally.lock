@@ -3,19 +3,9 @@
 registry = "test"
 
 [[package]]
-name = "mountaindouw/faye"
-version = "2.1.5"
-dependencies = [["SimpleSignal", "mountaindouw/simplesignal@1.2.0"]]
-
-[[package]]
-name = "mountaindouw/simplesignal"
-version = "1.2.0"
-dependencies = []
-
-[[package]]
 name = "mountaindouw/textplus"
-version = "1.1.8"
-dependencies = [["faye", "mountaindouw/faye@2.1.5"], ["translatewrapper", "prophetouw/translatewrapper@1.0.6"]]
+version = "1.1.9"
+dependencies = [["translatewrapper", "prophetouw/translatewrapper@1.0.6"]]
 
 [[package]]
 name = "prophetouw/translatewrapper"
