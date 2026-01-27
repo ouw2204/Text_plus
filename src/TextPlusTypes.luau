@@ -42,6 +42,7 @@ export type PlayableType = {
     Container: (Frame | CanvasGroup | {List: UIListLayout?})?;
     GetContentSize: (self: PlayableType, Parent: any) -> Vector2?;
     From: (self: PlayableType, TextLabel: TextLabel, Exclusions: (string | {string})?) -> PlayableType;
+    Word: string;
 };
 export type textPlusType = {
     new: (Content: string,DefaultSettings: DefaultSettingsType?) -> PlayableType;

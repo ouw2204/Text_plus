@@ -322,5 +322,5 @@ return function(Content: Types.PlayableType,Word: TextLabel,Params: {[string]: n
     tab.stroketransparency = (Params ~= nil and Params.stroketransparency) or Settings.StrokeTransparency or Defaults.StrokeTransparency
     tab.color = (Params ~= nil and Params.color) or Settings.Color or Defaults.Color
     tab.strokecolor = (Params ~= nil and Params.strokecolor) or Settings.StrokeColor or Defaults.StrokeColor
-    return setmetatable(tab,module) :: any
+    return setmetatable(tab,module)
 end

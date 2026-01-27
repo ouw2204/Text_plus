@@ -26,6 +26,9 @@ function Terminate(Content: Types.PlayableType)
         Content.__DeleteWhenDone = true;
     end
 end
+local Styles = require(script.Parent.Parent.Animators.AnimatorClass.Styles)
+local emptyudm = UDim2.fromScale(1,1)
+local tableType = "table"
 return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2, ScaledEligible: boolean)
     if (Content.LastRunSuccessful == false and Content.__Broke == nil) or Content == nil or Content.Container == nil or Content.Container.Parent == nil then
         --warn(`Something went wrong while running Text+ so the programmed was terminated.`)
@@ -210,6 +213,24 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             --Content.CurrentCharTxt = Txt;
                             Txt.Size = ud2f(1,1);
                             Txt.TextTransparency = 1;
+                            local Color = Content.CurrentColor or Content.Settings.Color or Defaults.Color
+                            local Tr = (Content.CurrentTransparency or Content.Settings.Transparency or Defaults.Transparency)
+                            local STr = (Content.CurrentStrokeTransparency or Content.Settings.StrokeTransparency or Defaults.StrokeTransparency)
+                            local StrokeColor = (Content.CurrentStrokeColor or Content.Settings.StrokeColor or Defaults.StrokeColor)
+                            Txt.TextTransparency = Tr
+                            if Content.CurrentAnimation ~= nil then
+                               if Content.CurrentAnimation.StyleIsTable then
+                                    for _,v in ipairs(Content.CurrentAnimation.Style) do
+                                        if tof(v) == tableType then
+                                            Styles[v.style](Txt,0,Tr, STr,Color,StrokeColor,emptyudm,emptyudm,1,false)
+                                        else
+                                            Styles[v](Txt,0,Tr, STr,Color,StrokeColor,emptyudm,emptyudm,1,false)
+                                        end
+                                    end
+                               else
+                                    Styles[Content.CurrentAnimation.Style](Txt,0,Tr, STr,Color,StrokeColor,emptyudm,emptyudm,1,false)
+                               end 
+                            end
                             Txt.Parent = Content.WordInstance;
                             Txt.TextSize = TextSize;
                             --Txt.TextScaled = true;
@@ -229,10 +250,10 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             Txt.Position = ud2f( Content.PrevCharX + (X/2),.5);
                             Content.PrevCharX += X;
                             Txt.TextScaled = true;
-                            Txt.TextTransparency = (Content.CurrentTransparency or Content.Settings.Transparency or Defaults.Transparency)
-                            Txt.TextColor3 = Content.CurrentColor or Content.Settings.Color or Defaults.Color;
-                            Txt.TextStrokeColor3 = (Content.CurrentStrokeColor or Content.Settings.StrokeColor or Defaults.StrokeColor)
-                            Txt.TextStrokeTransparency = (Content.CurrentStrokeTransparency or Content.Settings.StrokeTransparency or Defaults.StrokeTransparency)
+                            
+                            Txt.TextColor3 = Color;
+                            Txt.TextStrokeColor3 = StrokeColor
+                            Txt.TextStrokeTransparency = STr
                             Txt.Size = ud2f(X,1);
 
                             if Content.CurrentAnimation ~= nil then

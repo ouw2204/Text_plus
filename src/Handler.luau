@@ -67,7 +67,8 @@ function module:GetContentSize(ParentFrame: Frame)
         if self.Settings.Scaled then
             TextSize = math.min(math.min(parentAbs.Y,100)*Scale,100)
         end
-        for _,Word in pairs(Split) do
+        
+        for _,Word in ipairs(Split) do
             
             --<ids
             if (Word == "#" or ss(Word,1,1) == "#") then
@@ -298,7 +299,7 @@ function module:Stop()
     self.__DeleteWhenDone = nil;
     self.Animations = nil;
 end
-local tc = table.clear
+
 function module:Destroy()
     self:__removeRoutines();
     self:Stop();
@@ -309,13 +310,9 @@ function module:Destroy()
     end
     self.Sequence = nil;
     self.SequenceCount = nil;
-    --[[for i,_ in pairs(self.Settings) do
-        self.Settings[i] = nil;
-    end]]
+
     self.RawContent = nil;
-    --self.Settings = nil;
-    setmetatable(self,nil)
-    tc(self)
+
 end
 
 local threadtxt = "thread"
