@@ -8,13 +8,13 @@ A Roblox rich text module by MountainDouw
 
 Add to your `wally.toml`:
 
-```toml
+```
 textplus = "mountaindouw/textplus@1.2.0"
 ```
 
 Then run:
 
-```bash
+```
 wally install
 ```
 
