@@ -1,6 +1,5 @@
 local Threader = require(script.Parent.Parent.Packages.faye)
 local TextPlus = require(script.Parent.Parent)
-local Types = require(script.Parent.Parent.Packages._Index["mountaindouw_faye@2.1.5"].faye.FayeTypes)
 return function (Target: GuiBase)
     local Thread = Threader.new();
     Thread:Create "Frame" {
@@ -23,6 +22,7 @@ return function (Target: GuiBase)
                 StrokeTransparency = .2;
                 ContentScaled = true;
             });
+            
             Text:Play(Entity)
             local Anim = Thread:LoadAnimation(Entity,{Size = UDim2.fromScale(.3,.3)})
             Anim:Play()

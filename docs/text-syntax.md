@@ -35,13 +35,13 @@ Text+ uses a special syntax to apply styling and animations to specific parts of
 
 ### Color
 
-Set the text color using RGB values:
+Set the text color using RGB, HSV, or plain values (defaults to `Color.new`):
 
 ```lua
-"[Text]<Color=rgb(255,0,0)>"     -- Red
-"[Text]<Color=rgb(0,255,0)>"     -- Green
-"[Text]<Color=rgb(0,0,255)>"     -- Blue
-"[Text]<Color=rgb(255,255,0)>"   -- Yellow
+"[Text]<Color=rgb(255,0,0)>"     -- Red (RGB)
+"[Text]<Color=rgb(0,255,0)>"     -- Green (RGB)
+"[Text]<Color=hsv(0.5,1,1)>"    -- Cyan (HSV)
+"[Text]<Color=(255,0,0)>"       -- Red (Color.new)
 ```
 
 ### Size
@@ -194,9 +194,39 @@ Display images inline with text using the `Img` parameter and `#` placeholder:
 
 The `#` acts as a placeholder that gets replaced with the image.
 
-## Advanced Style Configuration
+## Parentheses Syntax
 
-Styles can be configured with additional options:
+Some parameters support parentheses `()` to pass additional options or structured values.
+
+### Color / StrokeColor
+
+Use `rgb()`, `hsv()`, or plain values (defaults to `Color.new`):
+
+```lua
+"[Text]<Color=rgb(255,0,0)>"
+"[Text]<Color=hsv(0.5,1,1)>"
+"[Text]<Color=(255,0,0)>"           -- Defaults to Color.new
+"[Text]<StrokeColor=rgb(0,0,0)>"
+```
+
+### FontFace
+
+Use parentheses to specify family, weight, and style:
+
+```lua
+-- Full path with weight and style
+"[Text]<FontFace=(rbxasset://fonts/families/GothamSSm.json,Bold,Normal)>"
+
+-- Font name only
+"[Text]<FontFace=(Sarpanch)>"
+
+-- Font name with weight and style
+"[Text]<FontFace=(AmaticSC,Regular,Italic)>"
+```
+
+### Style
+
+Styles support parentheses for options and combining multiple styles:
 
 ```lua
 -- Basic style
@@ -207,6 +237,9 @@ Styles can be configured with additional options:
 
 -- Multiple styles
 "[Text]<Style=(Fade,Pop)>"
+
+-- Multiple styles with individual options
+"[Text]<Style=((Rainbow,Reverse=true),Shrink,(Rise,Reverse=true,Amplitude=3))>"
 ```
 
 ### Style Options

@@ -1,6 +1,5 @@
 local Threader = require(script.Parent.Parent.Packages.faye)
 local TextPlus = require(script.Parent.Parent)
-local Types = require(script.Parent.Parent.Packages._Index["mountaindouw_faye@2.1.5"].faye.FayeTypes)
 return function (Target: GuiBase)
     local Thread = Threader.new();
     Thread:Create "Frame" {
