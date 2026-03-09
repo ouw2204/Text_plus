@@ -9,7 +9,7 @@ A Roblox rich text module by MountainDouw
 Add to your `wally.toml`:
 
 ```
-textplus = "mountaindouw/textplus@1.2.0"
+textplus = "ouw2204/textplus@1.3.0"
 ```
 
 Then run:
