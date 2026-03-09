@@ -9,6 +9,21 @@ local Utility = require(script.Parent.Parent.TextPlusUtility);
 local tins = table.insert
 local ss = string.sub
 local min = math.min
+
+-- UTF-8 aware helpers to correctly handle multi-byte characters (accented, CJK, etc.)
+local function utf8len(s: string): number
+	return utf8.len(s) or #s
+end
+local function utf8sub(s: string, i: number, j: number): string
+	local startByte = utf8.offset(s, i)
+	local endByte = utf8.offset(s, j + 1)
+	if startByte == nil then return "" end
+	if endByte then
+		return ss(s, startByte, endByte - 1)
+	else
+		return ss(s, startByte)
+	end
+end
 local tof = typeof
 local tabletxt = "table"
 local DefaultX = Enum.TextXAlignment.Left;
@@ -105,10 +120,10 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                     if Content.Word == nil then
                         Pass = true;
                         Content.Word = Content.List[Content.CurrentIndexPosition];
-                        Content.WordLength = #Content.Word;
-                        
+                        Content.WordLength = utf8len(Content.Word);
+
                         --<ids
-                        if Content.Params ~= nil and (Content.Word == "#" or ss(Content.Word,1,1) == "#") then
+                        if Content.Params ~= nil and (Content.Word == "#" or utf8sub(Content.Word,1,1) == "#") then
                             if Content.Word == "#" and Content.Params then
                                 --< image
                                 if Content.Params.img ~= nil then
@@ -125,12 +140,12 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                                 --> image
                             else
                                 --< functions
-                                local id = ss(Content.Word,min(2,Content.WordLength),Content.WordLength)
+                                local id = utf8sub(Content.Word,min(2,Content.WordLength),Content.WordLength)
                                 if id ~= nil then
                                     local fetched = Content:GetIdValue(id)
                                     local newWord = (fetched ~= nil and ts(fetched)) or id;
                                     Content.Word = newWord;
-                                    Content.WordLength = #Content.Word;
+                                    Content.WordLength = utf8len(Content.Word);
                                     
                                     -- Always reset character position for the new word
                                     Content.CurrentCharacterPosition = min((Content.Chunks or Content.Settings.Chunks or 1), Content.WordLength);
@@ -146,6 +161,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             Content.PrevCharX = 0;
                             local WordInstance = Instance.new("TextLabel");
                             WordInstance.Name = Content.Word;
+                            WordInstance.AutoLocalize = false;
                             WordInstance.Parent = Content.Container;
                             WordInstance.TextTransparency = 1;
                             WordInstance.TextSize = TextSize;
@@ -159,6 +175,15 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                                 WordInstance.Font = Content.CurrentFont or Content.Settings.Font or Enum.Font.SourceSans;
                             end
                             WordInstance.TextColor3 = Content.Settings.Color or Color3.new(1,1,1);
+                            -- Pre-compute cumulative character widths before TextScaled is set
+                            -- (TextBounds returns natural size only when TextScaled is false)
+                            local charWidths = {}
+                            for ci = 1, Content.WordLength do
+                                WordInstance.Text = utf8sub(Content.Word, 1, ci)
+                                charWidths[ci] = WordInstance.TextBounds.X
+                            end
+                            WordInstance.Text = Content.Word;
+                            Content.CharWidths = charWidths;
                             local Bounds = WordInstance.TextBounds;
                             if Content.Settings.Scaled and ScaledEligible then
                                 WordInstance.Size = ud2f(Bounds.X/parentAbs.X,TextSize/parentAbs.Y);
@@ -196,6 +221,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                         --< letters
                         if Content.CurrentCharacterPosition > Content.WordLength then
                             IncreaseCurentIndexPosition = true;
+                            Content.CharWidths = nil;
                             Content.Word = nilset;
                             Content.WordLength = nilset;
                             Content.CurrentCharTxt = nil;
@@ -204,8 +230,9 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             Content.CurrentAnimation = nil;
                         else
                             IncreaseCurrentCharacterPosition = true;
-                            local Char = ss(Content.Word,(Content.PrevCharacterPosition or 0) +1 ,Content.CurrentCharacterPosition)
+                            local Char = utf8sub(Content.Word,(Content.PrevCharacterPosition or 0) +1 ,Content.CurrentCharacterPosition)
                             local Txt = Instance.new("TextLabel");
+                            Txt.AutoLocalize = false;
                             if Content.Settings.LetterStepped ~= nil then
                                 Content.Settings.LetterStepped(Content,Char, Content.Word)
                             end
@@ -243,14 +270,24 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             else
                                 Txt.Font = Content.CurrentFont or Content.Settings.Font or Enum.Font.SourceSans;
                             end
-                            local ParentAbs = Content.WordInstance.AbsoluteSize
                             Txt.Text = Char;
 
-                            local X = (Txt.TextBounds.X)/ParentAbs.X
+                            -- Use pre-computed cumulative widths normalized to total word width
+                            -- (avoids gaps from AbsoluteSize vs TextBounds pixel rounding mismatch)
+                            local cumulativePixels = Content.CharWidths and Content.CharWidths[Content.CurrentCharacterPosition]
+                            local totalWidth = Content.CharWidths and Content.CharWidths[Content.WordLength]
+                            local cumulativeX
+                            if cumulativePixels and totalWidth and totalWidth > 0 then
+                                cumulativeX = cumulativePixels / totalWidth
+                            else
+                                local ParentAbs = Content.WordInstance.AbsoluteSize
+                                cumulativeX = Content.PrevCharX + (Txt.TextBounds.X) / ParentAbs.X
+                            end
+                            local X = cumulativeX - Content.PrevCharX
                             Txt.Position = ud2f( Content.PrevCharX + (X/2),.5);
-                            Content.PrevCharX += X;
+                            Content.PrevCharX = cumulativeX;
                             Txt.TextScaled = true;
-                            
+
                             Txt.TextColor3 = Color;
                             Txt.TextStrokeColor3 = StrokeColor
                             Txt.TextStrokeTransparency = STr

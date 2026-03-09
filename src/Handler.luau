@@ -13,7 +13,6 @@ local Defaults = require(script.Parent.Animators.Defaults)
 local DefaultX = Enum.TextXAlignment.Left;
 local DefaultY = Enum.TextYAlignment.Top;
 local ss = string.sub
-local min = math.min
 local ListName = "List";
 local ud2f = UDim2.fromScale;
 local ud2fo = UDim2.fromOffset;
@@ -34,6 +33,7 @@ function module:GetContentSize(ParentFrame: Frame)
     local parentAbs = ParentFrame.AbsoluteSize
     local Container = Instance.new("Frame");
     Container.Name = "TextPlusTextHolder";
+    Container.AutoLocalize = false;
     Container.Size =  (self.Settings.ContentScaled and ud2f(1,1)) or UDim2.fromOffset(parentAbs.X,parentAbs.Y);
     Container.BackgroundTransparency = 1;
     Container.Parent = ParentFrame;
@@ -87,8 +87,7 @@ function module:GetContentSize(ParentFrame: Frame)
                     --> image
                 else
                     --< functions
-                    local WordLength = #Word;
-                    local id = ss(Word,min(2,WordLength),WordLength)
+                    local id = ss(Word,2)
                     if id ~= nil then
                         local newWord = self:GetIdValue(id) or id;
                         Word = newWord;
@@ -100,6 +99,7 @@ function module:GetContentSize(ParentFrame: Frame)
 
             local WordInstance = Instance.new("TextLabel");
             WordInstance.Name = Word;
+            WordInstance.AutoLocalize = false;
             WordInstance.TextSize = TextSize;
             WordInstance.Text = Word;
             WordInstance.TextXAlignment = self.Settings.XAlignment or DefaultX;
@@ -179,6 +179,7 @@ function module:Play(ParentFrame: Frame)
 
     self.Container = (self.Settings.UseCanvas and Instance.new("CanvasGroup")) or Instance.new"Frame";
     self.Container.Name = "TextPlusTextHolder";
+    self.Container.AutoLocalize = false;
     if self.Settings.ContentScaled then
         self.Container.Size =  ud2f(1,1)
     end;
@@ -379,6 +380,7 @@ function module:Print(ParentFrame: Frame)
     if self.Container == nil then
         self.Container = (self.Settings.UseCanvas and Instance.new("CanvasGroup")) or Instance.new"Frame";
         self.Container.Name = "TextPlusTextHolder";
+        self.Container.AutoLocalize = false;
         self.Container.Size = (self.Settings.ContentScaled and ud2f(1,1)) or UDim2.fromOffset(parentAbs.X,parentAbs.Y);
         self.Container.BackgroundTransparency = 1;
         self.Container.Parent = ParentFrame;
@@ -446,8 +448,7 @@ function module:Print(ParentFrame: Frame)
                         --> image
                     else
                         --< functions
-                        local WordLength = #Word;
-                        local id = ss(Word,min(2,WordLength),WordLength)
+                        local id = ss(Word,2)
                         if id ~= nil then
                             local newWord = self:GetIdValue(id) or id;
                             Word = newWord;
@@ -459,6 +460,7 @@ function module:Print(ParentFrame: Frame)
 
                 local WordInstance = Instance.new("TextLabel");
                 WordInstance.Name = Word;
+                WordInstance.AutoLocalize = false;
                 WordInstance.Parent = self.Container;
                 WordInstance.TextTransparency = Transparency;
                 WordInstance.TextSize = TextSize;

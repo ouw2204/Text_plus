@@ -288,7 +288,7 @@ return function(Content: Types.PlayableType,Word: TextLabel,Params: {[string]: n
     local tab = {
         __Content = Content;
         Word = Word;
-        WordLength = #Word.Text/ (Content.Chunks or Content.Settings.Chunks or 1);
+        WordLength = (utf8.len(Word.Text) or #Word.Text) / (Content.Chunks or Content.Settings.Chunks or 1);
         Index = 0;
         Progress = 0;
         Style = (Params ~= nil and Params.style) or Settings.Style or Settings.style;
