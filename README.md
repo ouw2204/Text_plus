@@ -24,7 +24,7 @@ Download the latest release from the [GitHub Releases page](https://github.com/m
 
 ### Roblox
 
-Get Text+ from the Roblox Creator Marketplace.
+[Get Text+ from the Roblox Creator Marketplace.](https://create.roblox.com/store/asset/119888071514848/TextPlus)
 
 ## Update Log
 ### v1.1.9
