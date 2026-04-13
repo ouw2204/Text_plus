@@ -262,7 +262,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             Txt.TextSize = TextSize;
                             --Txt.TextScaled = true;
                             Txt.AnchorPoint = Vector2.new(.5,.5);
-                            Txt.TextXAlignment = Enum.TextXAlignment.Center;
+                            Txt.TextXAlignment = Enum.TextXAlignment.Left;
                             Txt.TextYAlignment = Enum.TextYAlignment.Center;
                             Txt.BackgroundTransparency = 1;
                             if Content.Settings.FontFace ~= nil or Content.CurrentFontFace ~= nil then
