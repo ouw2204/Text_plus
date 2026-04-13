@@ -238,7 +238,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             end
                             Txt.Name = Char;
                             --Content.CurrentCharTxt = Txt;
-                            Txt.Size = ud2f(5,1);
+                            Txt.Size = ud2f(15,1);
                             Txt.TextTransparency = 1;
                             local Color = Content.CurrentColor or Content.Settings.Color or Defaults.Color
                             local Tr = (Content.CurrentTransparency or Content.Settings.Transparency or Defaults.Transparency)
