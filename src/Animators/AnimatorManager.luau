@@ -291,7 +291,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             Txt.TextColor3 = Color;
                             Txt.TextStrokeColor3 = StrokeColor
                             Txt.TextStrokeTransparency = STr
-                            Txt.Size = ud2f(X,1);
+                            Txt.Size = ud2f(X*1.05,1);
 
                             if Content.CurrentAnimation ~= nil then
                                 Content.CurrentAnimation:AddLetter(Txt)
