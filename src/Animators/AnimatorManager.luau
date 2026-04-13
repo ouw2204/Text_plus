@@ -262,7 +262,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             Txt.TextSize = TextSize;
                             --Txt.TextScaled = true;
                             Txt.AnchorPoint = Vector2.new(.5,.5);
-                            Txt.TextXAlignment = Enum.TextXAlignment.Left;
+                            Txt.TextXAlignment = Enum.TextXAlignment.Center;
                             Txt.TextYAlignment = Enum.TextYAlignment.Center;
                             Txt.BackgroundTransparency = 1;
                             if Content.Settings.FontFace ~= nil or Content.CurrentFontFace ~= nil then
@@ -291,7 +291,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             Txt.TextColor3 = Color;
                             Txt.TextStrokeColor3 = StrokeColor
                             Txt.TextStrokeTransparency = STr
-                            Txt.Size = ud2f(X,1);
+                            Txt.Size = ud2f(1,1);
 
                             if Content.CurrentAnimation ~= nil then
                                 Content.CurrentAnimation:AddLetter(Txt)
