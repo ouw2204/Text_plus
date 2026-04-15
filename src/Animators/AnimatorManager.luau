@@ -185,6 +185,11 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             WordInstance.Text = Content.Word;
                             Content.CharWidths = charWidths;
                             local Bounds = WordInstance.TextBounds;
+                            -- Detect Roblox accessibility Text size multiplier. When TextScaled is
+                            -- false, TextBounds.Y ≈ TextSize; deviation = per-client scale multiplier.
+                            local textScale = (TextSize > 0) and (Bounds.Y / TextSize) or 1
+                            if textScale ~= textScale or textScale <= 0 then textScale = 1 end
+                            Content.TextScale = textScale;
                             if Content.Settings.Scaled and ScaledEligible then
                                 WordInstance.Size = ud2f(Bounds.X/parentAbs.X,TextSize/parentAbs.Y);
                                 WordInstance.TextScaled = true;
@@ -291,7 +296,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             Txt.TextColor3 = Color;
                             Txt.TextStrokeColor3 = StrokeColor
                             Txt.TextStrokeTransparency = STr
-                            Txt.Size = ud2f(X*1.05,1);
+                            Txt.Size = ud2f(X*1.0575, (Content.TextScale or 1));
 
                             if Content.CurrentAnimation ~= nil then
                                 Content.CurrentAnimation:AddLetter(Txt)

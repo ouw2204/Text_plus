@@ -113,11 +113,13 @@ function module:GetContentSize(ParentFrame: Frame)
                 WordInstance.Font = font or Defaults.Font;
             end
             local Bounds = WordInstance.TextBounds;
+            -- Bounds.Y reflects the rendered height including the Roblox accessibility
+            -- Text size multiplier, so use it instead of raw TextSize for the Y dimension.
             if self.Settings.Scaled and ScaledEligible then
-                WordInstance.Size = ud2f(Bounds.X/parentAbs.X,TextSize/parentAbs.Y);
+                WordInstance.Size = ud2f(Bounds.X/parentAbs.X,Bounds.Y/parentAbs.Y);
                 WordInstance.TextScaled = true;
             else
-                WordInstance.Size = ud2fo(Bounds.X,TextSize);
+                WordInstance.Size = ud2fo(Bounds.X,Bounds.Y);
             end
             local ContentSize = List.AbsoluteContentSize;
             if not self.Settings.Overfill and (--[[ContentSize.X > parentAbs.X or ]]ContentSize.Y > parentAbs.Y) then
@@ -477,11 +479,13 @@ function module:Print(ParentFrame: Frame)
                 end
                 WordInstance.TextColor3 = Color or Defaults.Color;
                 local Bounds = WordInstance.TextBounds;
+                -- Bounds.Y reflects the rendered height including the Roblox accessibility
+                -- Text size multiplier, so use it instead of raw TextSize for the Y dimension.
                 if self.Settings.Scaled and ScaledEligible then
-                    WordInstance.Size = ud2f(Bounds.X/parentAbs.X,TextSize/parentAbs.Y);
+                    WordInstance.Size = ud2f(Bounds.X/parentAbs.X,Bounds.Y/parentAbs.Y);
                     WordInstance.TextScaled = true;
                 else
-                    WordInstance.Size = ud2fo(Bounds.X,TextSize);
+                    WordInstance.Size = ud2fo(Bounds.X,Bounds.Y);
                 end
                 local ContentSize = List.AbsoluteContentSize;
                  if not self.Settings.Overfill and (--[[ContentSize.X > parentAbs.X or ]]ContentSize.Y > parentAbs.Y) then
