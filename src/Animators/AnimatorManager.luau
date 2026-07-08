@@ -175,21 +175,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                                 WordInstance.Font = Content.CurrentFont or Content.Settings.Font or Enum.Font.SourceSans;
                             end
                             WordInstance.TextColor3 = Content.Settings.Color or Color3.new(1,1,1);
-                            -- Pre-compute cumulative character widths before TextScaled is set
-                            -- (TextBounds returns natural size only when TextScaled is false)
-                            local charWidths = {}
-                            for ci = 1, Content.WordLength do
-                                WordInstance.Text = utf8sub(Content.Word, 1, ci)
-                                charWidths[ci] = WordInstance.TextBounds.X
-                            end
-                            WordInstance.Text = Content.Word;
-                            Content.CharWidths = charWidths;
                             local Bounds = WordInstance.TextBounds;
-                            -- Detect Roblox accessibility Text size multiplier. When TextScaled is
-                            -- false, TextBounds.Y ≈ TextSize; deviation = per-client scale multiplier.
-                            local textScale = (TextSize > 0) and (Bounds.Y / TextSize) or 1
-                            if textScale ~= textScale or textScale <= 0 then textScale = 1 end
-                            Content.TextScale = textScale;
                             if Content.Settings.Scaled and ScaledEligible then
                                 WordInstance.Size = ud2f(Bounds.X/parentAbs.X,TextSize/parentAbs.Y);
                                 WordInstance.TextScaled = true;
@@ -226,7 +212,6 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                         --< letters
                         if Content.CurrentCharacterPosition > Content.WordLength then
                             IncreaseCurentIndexPosition = true;
-                            Content.CharWidths = nil;
                             Content.Word = nilset;
                             Content.WordLength = nilset;
                             Content.CurrentCharTxt = nil;
@@ -277,26 +262,20 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             end
                             Txt.Text = Char;
 
-                            -- Use pre-computed cumulative widths normalized to total word width
-                            -- (avoids gaps from AbsoluteSize vs TextBounds pixel rounding mismatch)
-                            local cumulativePixels = Content.CharWidths and Content.CharWidths[Content.CurrentCharacterPosition]
-                            local totalWidth = Content.CharWidths and Content.CharWidths[Content.WordLength]
-                            local cumulativeX
-                            if cumulativePixels and totalWidth and totalWidth > 0 then
-                                cumulativeX = cumulativePixels / totalWidth
-                            else
-                                local ParentAbs = Content.WordInstance.AbsoluteSize
-                                cumulativeX = Content.PrevCharX + (Txt.TextBounds.X) / ParentAbs.X
-                            end
-                            local X = cumulativeX - Content.PrevCharX
+                            -- TextBounds is accurate immediately on read, so the letter is
+                            -- positioned and sized straight off its live bounds relative to
+                            -- the word; the label then exactly covers its glyph. Read once
+                            -- before TextScaled so it's the natural width at TextSize.
+                            local ParentAbs = Content.WordInstance.AbsoluteSize
+                            local X = (Txt.TextBounds.X) / ParentAbs.X
                             Txt.Position = ud2f( Content.PrevCharX + (X/2),.5);
-                            Content.PrevCharX = cumulativeX;
+                            Content.PrevCharX = Content.PrevCharX + X;
                             Txt.TextScaled = true;
 
                             Txt.TextColor3 = Color;
                             Txt.TextStrokeColor3 = StrokeColor
                             Txt.TextStrokeTransparency = STr
-                            Txt.Size = ud2f(X*1.0575, (Content.TextScale or 1));
+                            Txt.Size = ud2f(X,1)
 
                             if Content.CurrentAnimation ~= nil then
                                 Content.CurrentAnimation:AddLetter(Txt)
