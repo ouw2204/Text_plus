@@ -176,11 +176,14 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             end
                             WordInstance.TextColor3 = Content.Settings.Color or Color3.new(1,1,1);
                             local Bounds = WordInstance.TextBounds;
+                            -- Bounds.Y reflects the rendered height including the Roblox accessibility
+                            -- Text size multiplier, so use it instead of raw TextSize for the Y dimension;
+                            -- the letters below are TextScaled into this box and must match it.
                             if Content.Settings.Scaled and ScaledEligible then
-                                WordInstance.Size = ud2f(Bounds.X/parentAbs.X,TextSize/parentAbs.Y);
+                                WordInstance.Size = ud2f(Bounds.X/parentAbs.X,Bounds.Y/parentAbs.Y);
                                 WordInstance.TextScaled = true;
                             else
-                                WordInstance.Size = ud2fo(Bounds.X,TextSize);
+                                WordInstance.Size = ud2fo(Bounds.X,Bounds.Y);
                             end
                             Content.WordInstance = WordInstance;
                             local ContentSize = Content.ListObject.AbsoluteContentSize;
