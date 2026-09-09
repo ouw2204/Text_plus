@@ -175,6 +175,19 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                                 WordInstance.Font = Content.CurrentFont or Content.Settings.Font or Enum.Font.SourceSans;
                             end
                             WordInstance.TextColor3 = Content.Settings.Color or Color3.new(1,1,1);
+                            -- Cumulative prefix widths for the whole word, measured on the word
+                            -- label while it is still invisible. Measuring each letter on its own
+                            -- drops the kerning between it and its neighbours and rounds every
+                            -- glyph independently, and those errors add up left to right until a
+                            -- gap opens near the end of the word. Prefix widths keep the kerning
+                            -- and pin the last letter to the word's own width.
+                            local charWidths = table.create(Content.WordLength);
+                            for ci = 1, Content.WordLength do
+                                WordInstance.Text = utf8sub(Content.Word, 1, ci);
+                                charWidths[ci] = WordInstance.TextBounds.X;
+                            end
+                            WordInstance.Text = Content.Word;
+                            Content.CharWidths = charWidths;
                             local Bounds = WordInstance.TextBounds;
                             -- Bounds.Y reflects the rendered height including the Roblox accessibility
                             -- Text size multiplier, so use it instead of raw TextSize for the Y dimension;
@@ -215,6 +228,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                         --< letters
                         if Content.CurrentCharacterPosition > Content.WordLength then
                             IncreaseCurentIndexPosition = true;
+                            Content.CharWidths = nilset;
                             Content.Word = nilset;
                             Content.WordLength = nilset;
                             Content.CurrentCharTxt = nil;
@@ -265,20 +279,38 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             end
                             Txt.Text = Char;
 
-                            -- TextBounds is accurate immediately on read, so the letter is
-                            -- positioned and sized straight off its live bounds relative to
-                            -- the word; the label then exactly covers its glyph. Read once
-                            -- before TextScaled so it's the natural width at TextSize.
-                            local ParentAbs = Content.WordInstance.AbsoluteSize
-                            local X = (Txt.TextBounds.X) / ParentAbs.X
-                            Txt.Position = ud2f( Content.PrevCharX + (X/2),.5);
-                            Content.PrevCharX = Content.PrevCharX + X;
+                            -- Walk the prefix widths measured above, as a fraction of the word
+                            -- box, so the last letter ends exactly at the word's edge. Falls back
+                            -- to this letter's own bounds if the word went unmeasured.
+                            local cumulative = Content.CharWidths and Content.CharWidths[Content.CurrentCharacterPosition];
+                            local total = Content.CharWidths and Content.CharWidths[Content.WordLength];
+                            local Ink = Txt.TextBounds.X; -- natural width, read before TextScaled
+                            local Denominator = Content.WordInstance.AbsoluteSize.X;
+                            local cumulativeX;
+                            if cumulative ~= nil and total ~= nil and total > 0 then
+                                cumulativeX = cumulative / total;
+                                Denominator = total;
+                            else
+                                cumulativeX = Content.PrevCharX + Ink / Denominator
+                            end
+                            local X = cumulativeX - Content.PrevCharX;
+                            -- The advance can be narrower than the glyph itself where a pair
+                            -- kerns tight, and TextScaled would shrink that letter to fit its
+                            -- box, so the box takes the wider of the two. The overhang only
+                            -- overlaps the neighbouring label; the cursor still moves by the
+                            -- advance, which is what keeps the spacing even.
+                            local BoxWidth = X;
+                            if Denominator > 0 then
+                                BoxWidth = math.max(X, Ink / Denominator);
+                            end
+                            Txt.Position = ud2f( Content.PrevCharX + (BoxWidth/2),.5);
+                            Content.PrevCharX = cumulativeX;
                             Txt.TextScaled = true;
 
                             Txt.TextColor3 = Color;
                             Txt.TextStrokeColor3 = StrokeColor
                             Txt.TextStrokeTransparency = STr
-                            Txt.Size = ud2f(X,1)
+                            Txt.Size = ud2f(BoxWidth,1)
 
                             if Content.CurrentAnimation ~= nil then
                                 Content.CurrentAnimation:AddLetter(Txt)
