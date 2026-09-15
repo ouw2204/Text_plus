@@ -255,7 +255,7 @@ function module.Phase2(input: string?, Content: any): {[any]: any}?
     return result
 end
 
-local TranslateWrapper = require(script.Parent.Packages.translatewrapper);
+local TranslateWrapper = require(script.Parent.Parent.translatewrapper);
 
 module.Phase1 = function(input: string?, Content: any): {[any]: any}?
     if input == nil then return end
