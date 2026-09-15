@@ -128,6 +128,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                                 --< image
                                 if Content.Params.img ~= nil then
                                     local Image = Instance.new("ImageLabel");
+                                    Image.AutoLocalize = false;
                                     Image.Name = "img - "..Content.Params.img
                                     Image.Size = if Content.Settings.Scaled and ScaledEligible then ud2f(TextSize/parentAbs.X,TextSize/parentAbs.Y) else ud2fo(TextSize,TextSize)
                                     Image.Parent = Content.Container;

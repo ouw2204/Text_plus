@@ -76,6 +76,7 @@ function module:GetContentSize(ParentFrame: Frame)
                     --< image
                     if img ~= nil then
                         local Image = Instance.new("ImageLabel");
+                        Image.AutoLocalize = false;
                         Image.Name = "img - "..img
                         Image.Size = if self.Settings.Scaled and ScaledEligible then ud2f(TextSize/parentAbs.X,TextSize/parentAbs.Y) else ud2fo(TextSize,TextSize)
                         Image.ImageTransparency = 1;
@@ -440,6 +441,7 @@ function module:Print(ParentFrame: Frame)
                         --< image
                         if img ~= nil then
                             local Image = Instance.new("ImageLabel");
+                            Image.AutoLocalize = false;
                             Image.Name = "img - "..img
                             Image.Size = if self.Settings.Scaled and ScaledEligible then ud2f(TextSize/parentAbs.X,TextSize/parentAbs.Y) else ud2fo(TextSize,TextSize)
                             Image.Parent = self.Container;
