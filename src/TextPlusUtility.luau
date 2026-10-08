@@ -7,6 +7,30 @@ local sf = string.find
 local tabletxt = "table"
 local tins = table.insert
 local tf = table.find
+local WhitespaceProbe = "|";
+--[=[
+    Returns the bounds the label's own text actually occupies.
+
+    A whitespace-only string draws no glyphs, and Roblox measures it as zero
+    wide, which collapses the space labels between words. Measuring the
+    whitespace between two probe glyphs and subtracting the probes on their own
+    recovers the advance the spaces really take up.
+]=]
+function module.MeasureBounds(Label: TextLabel): Vector2
+    local Text = Label.Text;
+    local Bounds = Label.TextBounds;
+    if Text == "" or string.match(Text,"^%s+$") == nil then
+        return Bounds;
+    end
+    Label.Text = WhitespaceProbe..Text..WhitespaceProbe;
+    local Probed = Label.TextBounds;
+    Label.Text = WhitespaceProbe..WhitespaceProbe;
+    local ProbesOnly = Label.TextBounds.X;
+    Label.Text = Text;
+    local Width = math.max(Probed.X - ProbesOnly,0);
+    return Vector2.new(Width,math.max(Probed.Y,Bounds.Y));
+end
+
 function module.splitWordsAndSpaces(input: string): ({string},number)
 	local result = {}
     local i = 1
@@ -255,7 +279,7 @@ function module.Phase2(input: string?, Content: any): {[any]: any}?
     return result
 end
 
-local TranslateWrapper = require(script.Parent.Parent.translatewrapper);
+local TranslateWrapper = require(script.Parent.Packages.translatewrapper);
 
 module.Phase1 = function(input: string?, Content: any): {[any]: any}?
     if input == nil then return end

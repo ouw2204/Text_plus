@@ -113,7 +113,7 @@ function module:GetContentSize(ParentFrame: Frame)
             else
                 WordInstance.Font = font or Defaults.Font;
             end
-            local Bounds = WordInstance.TextBounds;
+            local Bounds = Utility.MeasureBounds(WordInstance);
             -- Bounds.Y reflects the rendered height including the Roblox accessibility
             -- Text size multiplier, so use it instead of raw TextSize for the Y dimension.
             if self.Settings.Scaled and ScaledEligible then
@@ -480,7 +480,7 @@ function module:Print(ParentFrame: Frame)
                     WordInstance.Font = font or Defaults.Font;
                 end
                 WordInstance.TextColor3 = Color or Defaults.Color;
-                local Bounds = WordInstance.TextBounds;
+                local Bounds = Utility.MeasureBounds(WordInstance);
                 -- Bounds.Y reflects the rendered height including the Roblox accessibility
                 -- Text size multiplier, so use it instead of raw TextSize for the Y dimension.
                 if self.Settings.Scaled and ScaledEligible then

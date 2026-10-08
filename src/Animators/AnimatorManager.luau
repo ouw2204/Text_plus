@@ -189,7 +189,7 @@ return function(Content: Types.PlayableType, WaitTime: number,parentAbs: Vector2
                             end
                             WordInstance.Text = Content.Word;
                             Content.CharWidths = charWidths;
-                            local Bounds = WordInstance.TextBounds;
+                            local Bounds = Utility.MeasureBounds(WordInstance);
                             -- Bounds.Y reflects the rendered height including the Roblox accessibility
                             -- Text size multiplier, so use it instead of raw TextSize for the Y dimension;
                             -- the letters below are TextScaled into this box and must match it.
